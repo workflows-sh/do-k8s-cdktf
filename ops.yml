@@ -1,0 +1,11 @@
+version: "1"
+commands:
+  - name: setup:0.2.0
+    run: ./node_modules/.bin/ts-node /ops/src/setup.ts
+    description: "setup an environment"
+    env:
+      static:
+        - STACK_TYPE=do-k8s
+      secrets:
+        - DO_TOKEN
+        - TFC_TOKEN
