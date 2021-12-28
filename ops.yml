@@ -8,4 +8,6 @@ commands:
         - STACK_TYPE=do-k8s
       secrets:
         - DO_TOKEN
+        - DO_SPACES_ACCESS_KEY_ID
+        - DO_SPACES_SECRET_ACCESS_KEY
         - TFC_TOKEN

@@ -19,8 +19,6 @@ export class Stack {
     const tag = props?.tag ?? 'main'
     const key = props?.key ?? 'do-k8s'
 
-    console.log(process.env)
-
     const registry = new Registry(app, `${repo}`, {
       repo: repo
     })

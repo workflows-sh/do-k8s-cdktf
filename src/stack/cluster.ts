@@ -37,7 +37,9 @@ export default class Cluster extends TerraformStack{
     const id = `${env}-${key}`
     
     new DigitaloceanProvider(this, `${id}-provider`, {
-      token: process.env.DO_TOKEN 
+      token: process.env.DO_TOKEN,
+      spacesAccessId: process.env.DO_SPACES_ACCESS_KEY_ID,
+      spacesSecretKey: process.env.DO_SPACES_SECRET_ACCESS_KEY
     })
  
     const vpc = new Vpc(this, `${id}-vpc`, {
@@ -50,11 +52,11 @@ export default class Cluster extends TerraformStack{
     })
 
     const cluster = new KubernetesCluster(this, `${id}-k8s`, {
-      name: `${prefix}-my-k8s-cluster-${suffix}`,
+      name: `${prefix}-${id}-k8s-${suffix}`,
       region: region,
       version: k8ver,
       nodePool: {
-        name: `${prefix}-my-first-nodepool-${suffix}`,
+        name: `${prefix}-${id}-k8s-worker-${suffix}`,
         size: dropletSize,
         nodeCount: 3
       },
@@ -91,7 +93,7 @@ export default class Cluster extends TerraformStack{
       domains: domains
     })
 
-    new Cdn(this, "my-cdn", {
+    new Cdn(this, `${id}-cdn`, {
       origin:  bucket.bucketDomainName,
       certificateName: stackCert.name
     })
