@@ -67,7 +67,7 @@ export default class Cluster extends TerraformStack{
       engine: 'pg',
       version: '13',
       size: 'db-s-1vcpu-1gb',
-      region: 'sfo3',
+      region: region,
       nodeCount: 1
     })
 
@@ -99,16 +99,17 @@ export default class Cluster extends TerraformStack{
     })
 
     
-    const vm1 = new Droplet(this, `${id}-droplet`, {
-      name: `${prefix}-${id}-${suffix}`,
+    const vm_lb = new Droplet(this, `${id}-lb-vm`, {
+      name: `${prefix}-${id}-lb-vm-${suffix}`,
       size: dropletSize,
       region: region,
       image: 'ubuntu-20-04-x64',
+      tags: [`${prefix}-${id}-lb-vm-${suffix}`],
       vpcUuid: vpc.id
     })
 
     const lb = new Loadbalancer(this, `${id}-lb`, {
-      name: `${prefix}-${id}-${suffix}`,
+      name: `${prefix}-${id}-lb-${suffix}`,
       region: region,
       forwardingRule:[{
         entryPort: 443,
@@ -117,10 +118,9 @@ export default class Cluster extends TerraformStack{
         targetProtocol: "http",
         certificateName: stackCert.name,
       }],
-
-      dependsOn: [
-        vm1
-      ]
+      vpcUuid: vpc.id,
+      dropletTag: `${prefix}-${id}-lb-vm-${suffix}`,
+      dependsOn: [ vm_lb ]
     })
 
     new ProjectResources(this, `${id}-resources`, {
@@ -128,11 +128,11 @@ export default class Cluster extends TerraformStack{
       resources: [
         lb.urn,
         bucket.urn,
-        vm1.urn,
+        vm_lb.urn,
         cluster.urn,
         db.urn
       ],
-      dependsOn: [ project, lb, bucket, vm1, cluster, db ]
+      dependsOn: [ project, lb, bucket, vm_lb, cluster, db ]
     })
 
     this.vpc = vpc
