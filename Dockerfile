@@ -24,8 +24,8 @@ RUN . $NVM_DIR/nvm.sh \
     && nvm alias default $NODE_VERSION \
     && nvm use default
 
-RUN wget https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_linux_arm64.zip
-RUN unzip terraform_1.1.0_linux_arm64.zip
+RUN wget https://releases.hashicorp.com/terraform/1.1.2/terraform_1.1.2_linux_arm64.zip -O terraform.zip
+RUN unzip terraform.zip
 RUN mv terraform /usr/local/bin/
 
 RUN wget https://github.com/digitalocean/doctl/releases/download/v1.66.0/doctl-1.66.0-linux-amd64.tar.gz
