@@ -1,8 +1,8 @@
-import { RemoteBackend } from "cdktf";
-import { Construct } from "constructs";
-import { TerraformStack } from 'cdktf'
+import { RemoteBackend } from 'cdktf';
+import { Construct } from 'constructs';
+import { TerraformStack, TerraformOutput, TerraformRemoteState,  } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
-import { Project, ProjectResources, Vpc, KubernetesCluster, SpacesBucket, Certificate, Droplet, Loadbalancer, Cdn, DatabaseCluster, DatabaseUser, DatabaseDb } from "../../.gen/providers/digitalocean";
+import { Project, ProjectResources, Vpc, KubernetesCluster, SpacesBucket, Certificate, Droplet, Loadbalancer, Cdn, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
 interface StackProps {
   env: string
@@ -19,12 +19,12 @@ export default class Cluster extends TerraformStack{
     super(app, name)
 
     //TODO: make dynamic
-    const region = "nyc3"
-    const prefix = "ctoai"
-    const suffix = "20211208"
-    const domains = ["tryapp.xyz"]
-    const k8ver = "1.21.5-do.0";
-    const dropletSize = "s-1vcpu-2gb";
+    const region = 'nyc3'
+    const prefix = 'ctoai'
+    const suffix = '20211208'
+    const domains = ['tryapp.xyz', '*.tryapp.xyz']
+    const k8ver = '1.21.5-do.0';
+    const dropletSize = 's-1vcpu-2gb';
 
     const env = props?.env ?? 'dev'
     const repo = props?.repo ?? 'sample-app'
@@ -84,12 +84,12 @@ export default class Cluster extends TerraformStack{
     const bucket = new SpacesBucket(this, `${id}-bucket`,{
       name: `${prefix}-${id}-${suffix}`,
       region: region,
-      acl: "private"
+      acl: 'private'
     })
 
     const stackCert = new Certificate(this, `${id}-cert`,{
       name: `${prefix}-${id}-${suffix}`,
-      type: "lets_encrypt",
+      type: 'lets_encrypt',
       domains: domains
     })
 
@@ -113,9 +113,9 @@ export default class Cluster extends TerraformStack{
       region: region,
       forwardingRule:[{
         entryPort: 443,
-        entryProtocol: "https",
+        entryProtocol: 'https',
         targetPort: 80,
-        targetProtocol: "http",
+        targetProtocol: 'http',
         certificateName: stackCert.name,
       }],
       vpcUuid: vpc.id,
@@ -139,14 +139,34 @@ export default class Cluster extends TerraformStack{
     this.cluster = cluster
     this.db = db
 
-    // temporary until KC gets access to TFC
-    //new LocalBackend(this, { path: `/ops/state/${env}-${key}.tfstate` })
+    new TerraformOutput(this, 'vpc', {
+      value: {
+        name: this.vpc.name,
+        urn: this.vpc.urn
+      }
+    })
+    new TerraformOutput(this, 'cluster', {
+      value: {
+        name: this.cluster.name,
+        endpoint: this.cluster.endpoint,
+        version: this.cluster.version,
+        urn: this.cluster.urn
+      }
+    })
+    new TerraformOutput(this, 'db', {
+      value: {
+        name: this.db.name,
+        host: this.db.host,
+        user: this.db.user,
+        urn: this.db.urn
+      }
+    })
 
     new RemoteBackend(this, {
-      hostname: "app.terraform.io",
-      organization: "cto-ai",
+      hostname: 'app.terraform.io',
+      organization: 'cto-ai',
       workspaces: {
-        name: "dev-do-k8s"
+        name: 'dev-do-k8s'
       }
     })
   }

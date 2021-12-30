@@ -1,6 +1,7 @@
 import { App } from "cdktf";
-import Registry from './registry'
 import Cluster from './cluster'
+import Service from './service'
+import Registry from './registry'
 
 interface StackProps {
   env: string
@@ -25,12 +26,15 @@ export class Stack {
     registry.initialize()
 
     // create each vpc, cluster & db
-    new Cluster(app, `${env}-${key}`, {
+    const cluster = new Cluster(app, `${env}-${key}`, {
       env: env,
       repo: repo,
       tag: tag,
       key: key
     })
+
+    const service = new Service(app, `${env}-${repo}`)
+    service.initialize()
 
     app.synth()
 

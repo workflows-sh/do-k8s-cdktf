@@ -2,7 +2,7 @@ import fs from 'fs'
 import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
-import { createWorkspace } from './helpers/tfc/index'
+import { createWorkspace, getWorkspaceOutputs } from './helpers/tfc/index'
 const pexec = util.promisify(oexec);
 
 async function run() {
@@ -39,7 +39,7 @@ async function run() {
     })
 
   const STACKS:any = {
-    'dev': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}`],
+    'dev': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`/*, `${STACK_ENV}-${STACK_REPO}`*/],
     'stg': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}`],
     'prd': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}`],
     'all': [
@@ -76,30 +76,19 @@ async function run() {
   // synth.stdout.pipe(process.stdout)
   // synth.stderr.pipe(process.stdout)
 
-  // tempoary work around until cdktf 0.9 or 0.10 solves multi/cross-stack & workspaces
-  // see: https://github.com/hashicorp/terraform-cdk/issues/650
-  // see: https://github.com/hashicorp/terraform-cdk/issues/651
-  // see: https://github.com/hashicorp/terraform-cdk/issues/670
-  // TODO: improve this to support full lifecycle management of TFC
-
+  // sync stacks>workspaces for separated imperative state
   console.log(`🛠 We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for your stack...\n`)
-  const errors:any[] = []
-  // first we make sure to create each workspace
+  const errors:any[] = [] 
   for(const stack of STACKS[STACK_ENV]) {
     ux.print(`✅ Setting up a ${ux.colors.green(stack)} workspace in Terraform Cloud...`)
    try {
-
-      // We need to create a workspace per stack
-      // This is done aggressively as it may already exist & fail
-      let token = process?.env?.TFC_TOKEN ?? ''
-      let res = await createWorkspace("cto-ai", stack, token)
-
+      let res = await createWorkspace('cto-ai', stack, process?.env?.TFC_TOKEN ?? '')
     } catch(e) {
       errors.push(ux.colors.gray(`   - ${ux.colors.green(stack)}: ${e} \n`) as string)
     }
   }
 
-  if(errors.length > 0) {
+  if(errors.length > 0) { // TODO: Improve this to check the error cases
     console.log(`\n⚠️  ${ux.colors.italic('It appears that Terraform Cloud returned at least one non-200 status for your stack')}`)
     console.log(`${ux.colors.gray(' - If this your first run & workspaces have not been created you may need to set a TFC_TOKEN secret')}`)
     console.log(`${ux.colors.gray(' - If this is not your first run & workspaces have been created correctly you can safely ignore this')}`)
@@ -111,8 +100,6 @@ async function run() {
   const stacks = STACKS[STACK_ENV].map(stack => {
     return  `./node_modules/.bin/cdktf deploy --auto-approve ${stack}`
   })
-
-  console.log(stacks.join(' \n') + '\n')
 
   ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')}...`)
   const deploy = await exec(stacks.join(' && '), {
@@ -127,34 +114,35 @@ async function run() {
   })
   // Get the AWS command to retrieve kube config
   .then(async () => {
-    console.log('done')
 
-    // try {
+     try {
 
-      // const outputs = await fs.readFileSync('./outputs.json', 'utf8')
-      // const json = JSON.parse(outputs)
+      // get workspace outputs
+      const outputs:any = {}
+      await Promise.all(STACKS[STACK_ENV].map(async (stack) => {
+        let output = await getWorkspaceOutputs('cto-ai', stack)
+        Object.assign(outputs, output)
+      }))
 
-      // const cmd = Object.keys(json[STACK_ENV])
-        // .find((k) => { return k.indexOf('ConfigCommand') > -1 })
+      // get the dok8s kubeconfig
+      const aws = await exec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+        .catch(err => { throw err })
 
-      // console.log('Running: ', json[STACK_ENV][cmd!])
-      // const aws = await exec(json[STACK_ENV][cmd!], process.env)
-        // .catch(err => { throw err })
+      const config = await pexec('cat ~/.kube/config')
+      //console.log(config.stdout)
 
-      // const config = await pexec('cat ~/.kube/config')
-      // console.log(config.stdout)
+      // save the KubeConfig to secret store
+      sdk.setSecret(`${STACK_ENV}_${STACK_TYPE}_KUBE_CONFIG`.toUpperCase().replace('-','_'), config.stdout)
 
-      // // save the KubeConfig to secret store
-      // // WIP: this still will require AWS_* in process.env later I think
-      // sdk.setSecret(`${STACK_ENV.toUpperCase()}_KUBE_CONFIG`, config.stdout)
+      console.log(outputs)
 
-    // } catch (e) {
-      // throw e
-    // }
+    } catch (e) {
+      throw e
+    }
 
   })
   .catch((err) => {
-    console.log('cdktf', err)
+    console.log(err)
     console.log()
     process.exit(1)
   })

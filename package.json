@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@cto.ai/sdk": "^2.4.3",
+    "@skorfmann/terraform-cloud": "^1.10.1",
     "cdktf": "^0.8.0",
     "cdktf-cli": "^0.8.0",
     "constructs": "^10.0.9",

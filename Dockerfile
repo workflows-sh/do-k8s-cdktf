@@ -28,6 +28,10 @@ RUN wget https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_linux_ar
 RUN unzip terraform_1.1.0_linux_arm64.zip
 RUN mv terraform /usr/local/bin/
 
+RUN wget https://github.com/digitalocean/doctl/releases/download/v1.66.0/doctl-1.66.0-linux-amd64.tar.gz
+RUN tar xf ./doctl-1.66.0-linux-amd64.tar.gz
+RUN mv ./doctl /usr/local/bin
+
 ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
 ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 

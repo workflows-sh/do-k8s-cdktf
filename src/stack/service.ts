@@ -1,14 +1,13 @@
 import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
-import { TerraformStack, TerraformOutput } from 'cdktf'
+import { TerraformStack } from 'cdktf'
 import { DigitaloceanProvider, ContainerRegistry } from '../../.gen/providers/digitalocean';
 
 interface StackProps {
   repo: string
  }
 
-export default class Registry extends TerraformStack{
-  public registry: ContainerRegistry
+export default class Service extends TerraformStack{
   public readonly props: StackProps | undefined
   public readonly repo: string | undefined
   constructor(app: Construct, name: string, props?: StackProps) {
@@ -27,23 +26,13 @@ export default class Registry extends TerraformStack{
       token: process.env.DO_TOKEN 
     })
 
-    const registry = new ContainerRegistry(this, `${this.repo}-registry`,{
-      name: `${prefix}-${this.repo}-${suffix}`,
-      subscriptionTierSlug: 'starter'
-    })
-
-    this.registry = registry;
-
-    new TerraformOutput(this, 'registry', {
-      value: this.registry
-    })
-
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
       organization: 'cto-ai',
       workspaces: {
-        name: 'sample-app'
+        name: 'dev-sample-app'
       }
     })
+
   }
 }

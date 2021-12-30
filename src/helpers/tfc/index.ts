@@ -1,6 +1,8 @@
 import https = require("https");
 import { format } from "url";
 
+const TerraformCloudClient = require('@skorfmann/terraform-cloud');
+
 const BASE_URL = `https://app.terraform.io/api/v2/`;
 
 const SUCCESS_STATUS_CODES = [200, 201];
@@ -121,4 +123,17 @@ export async function createWorkspace(
 
 export async function getOrganizationNames(token: string) {
   return (await get(`${BASE_URL}/organizations`, token)) as Organization;
+}
+
+export async function getWorkspaceOutputs(organizationName, workspaceName) {
+    const client = new TerraformCloudClient.TerraformCloud(process.env.TFC_TOKEN)
+    const workspaceId = (await client.Workspaces.showByName(organizationName, workspaceName)).id;
+    const stateVersion = await client.StateVersions.current(workspaceId, true);
+
+    const outputs = stateVersion.included.reduce((acc, output) => {
+        acc[output.attributes.name] = output.attributes.value;
+        return acc
+      }, {})
+
+    return outputs;
 }
