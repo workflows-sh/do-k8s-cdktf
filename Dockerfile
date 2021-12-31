@@ -46,5 +46,4 @@ ADD --chown=ops:9999 . .
 RUN npm run get
 
 RUN mkdir cdktf.out && chown ops:9999 cdktf.out
-
 ADD --chown=ops:9999 ./credentials.tfrc.json /home/ops/.terraform.d/credentials.tfrc.json

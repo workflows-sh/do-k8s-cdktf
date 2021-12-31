@@ -4,37 +4,35 @@ import Service from './service'
 import Registry from './registry'
 
 interface StackProps {
-  env: string
   repo: string
   tag: string
   key: string
 }
 
 export class Stack {
+
+  public readonly repo: string
+  public readonly tag: string
+  public readonly key: string
+
   constructor(props?: StackProps) {
+    this.repo = props?.repo ?? 'sample-app'
+    this.tag = props?.tag ?? 'main'
+    this.key = props?.key ?? 'do-k8s'
 
     const app = new App();
 
-    const env = props?.env ?? 'dev'
-    const repo = props?.repo ?? 'sample-app'
-    const tag = props?.tag ?? 'main'
-    const key = props?.key ?? 'do-k8s'
-
-    const registry = new Registry(app, `${repo}`, {
-      repo: repo
+    const registry = new Registry(app, `${this.repo}`, {
+      repo: this.repo
     })
-    registry.initialize()
 
     // create each vpc, cluster & db
-    const cluster = new Cluster(app, `${env}-${key}`, {
-      env: env,
-      repo: repo,
-      tag: tag,
-      key: key
+    const cluster = new Cluster(app, `dev-${this.key}`, {
+      repo: this.repo,
+      tag: this.tag
     })
 
-    const service = new Service(app, `${env}-${repo}`)
-    service.initialize()
+    const service = new Service(app, `dev-${this.repo}`)
 
     app.synth()
 

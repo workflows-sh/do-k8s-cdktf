@@ -39,7 +39,7 @@ async function run() {
     })
 
   const STACKS:any = {
-    'dev': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`/*, `${STACK_ENV}-${STACK_REPO}`*/],
+    'dev': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}`],
     'stg': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}`],
     'prd': [`${STACK_REPO}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}`],
     'all': [
@@ -63,7 +63,7 @@ async function run() {
   // process.env.KUBE_CONFIG = secret[`${STACK_ENV.toUpperCase()}_KUBE_CONFIG`]
 
   sdk.log(`📦 Setting up the stack...`)
-  /*const synth =*/ await exec(`./node_modules/.bin/cdktf synth`, {
+  await exec(`./node_modules/.bin/cdktf synth`, {
     env: { 
       ...process.env, 
       CDKTF_LOG_LEVEL: 'info',
@@ -73,8 +73,10 @@ async function run() {
       STACK_TAG: STACK_TAG
     }
   })
-  // synth.stdout.pipe(process.stdout)
-  // synth.stderr.pipe(process.stdout)
+  .catch(e => {
+    console.log('Could not synthesize', e)
+    process.exit(1)
+  })
 
   // sync stacks>workspaces for separated imperative state
   console.log(`🛠 We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for your stack...\n`)
@@ -82,7 +84,7 @@ async function run() {
   for(const stack of STACKS[STACK_ENV]) {
     ux.print(`✅ Setting up a ${ux.colors.green(stack)} workspace in Terraform Cloud...`)
    try {
-      let res = await createWorkspace('cto-ai', stack, process?.env?.TFC_TOKEN ?? '')
+      let res = await createWorkspace(process?.env?.TFC_ORG ?? '', stack, process?.env?.TFC_TOKEN ?? '')
     } catch(e) {
       errors.push(ux.colors.gray(`   - ${ux.colors.green(stack)}: ${e} \n`) as string)
     }
@@ -102,7 +104,7 @@ async function run() {
   })
 
   ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')}...`)
-  const deploy = await exec(stacks.join(' && '), {
+  await exec(stacks.join(' && '), {
     env: { 
       ...process.env, 
       CDKTF_LOG_LEVEL: 'fatal',
@@ -115,35 +117,44 @@ async function run() {
   // Get the AWS command to retrieve kube config
   .then(async () => {
 
+    console.log('✅ All stacks have been deployed. Syncing state with vault...')
+
      try {
 
       // get workspace outputs
       const outputs:any = {}
       await Promise.all(STACKS[STACK_ENV].map(async (stack) => {
-        let output = await getWorkspaceOutputs('cto-ai', stack)
+        let output = await getWorkspaceOutputs(process?.env?.TFC_ORG ?? '', stack, process?.env?.TFC_TOKEN ?? '')
         Object.assign(outputs, output)
-      }))
+     }))
 
-      // get the dok8s kubeconfig
-      const aws = await exec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
-        .catch(err => { throw err })
+      const K8S_CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_KUBE_CONFIG`.toUpperCase().replace('-','_')
+      // If we don't already have a kube config, let's get it and store it
+      if(!process.env[K8S_CONFIG_KEY]) {
 
-      const config = await pexec('cat ~/.kube/config')
-      //console.log(config.stdout)
+        // get the dok8s kubeconfig
+        await exec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+          .catch(err => { throw err })
 
-      // save the KubeConfig to secret store
-      sdk.setSecret(`${STACK_ENV}_${STACK_TYPE}_KUBE_CONFIG`.toUpperCase().replace('-','_'), config.stdout)
+        const config = await pexec('cat ~/.kube/config')
+        //console.log(config.stdout)
 
+        // save the KubeConfig to secret store using the env and stack name prefix
+        sdk.setSecret(K8S_CONFIG_KEY, config.stdout)
+        ux.print(`✅ Saved kubeconfig to vault for ${outputs.cluster.name} as ${K8S_CONFIG_KEY}`)
+       }
+
+      console.log('Retrieved the following outputs from your stacks:')
       console.log(outputs)
 
     } catch (e) {
-      throw e
+      console.log('Error syncing state', e)
+      process.exit(1)
     }
 
   })
-  .catch((err) => {
-    console.log(err)
-    console.log()
+  .catch(e => {
+    console.log('Could not deploy infrastructure', e)
     process.exit(1)
   })
 
@@ -158,6 +169,5 @@ async function exec(cmd, env?: any | null) {
     child.on('close', (code) => { code ? reject(child.stdout) : resolve(child.stderr) })
   })
 }
-
 
 run()

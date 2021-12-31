@@ -8,16 +8,18 @@ interface StackProps {
  }
 
 export default class Registry extends TerraformStack{
+
   public registry: ContainerRegistry
   public readonly props: StackProps | undefined
+  public readonly id: string | undefined
   public readonly repo: string | undefined
-  constructor(app: Construct, name: string, props?: StackProps) {
-    super(app, name)
-    this.props = props;
-    this.repo = props?.repo ?? 'sample-app'
-  }
 
-  async initialize() { 
+  constructor(scope: Construct, id: string, props?: StackProps) {
+    super(scope, id)
+
+    this.id = id
+    this.props = props
+    this.repo = props?.repo ?? 'sample-app'
 
     //TODO: make dynamic
     let prefix = 'ctoai'
@@ -40,9 +42,9 @@ export default class Registry extends TerraformStack{
 
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
-      organization: 'cto-ai',
+      organization: process?.env?.TFC_ORG ?? '',
       workspaces: {
-        name: 'sample-app'
+        name: this.id
       }
     })
   }

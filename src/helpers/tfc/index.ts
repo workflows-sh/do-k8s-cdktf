@@ -125,12 +125,12 @@ export async function getOrganizationNames(token: string) {
   return (await get(`${BASE_URL}/organizations`, token)) as Organization;
 }
 
-export async function getWorkspaceOutputs(organizationName, workspaceName) {
-    const client = new TerraformCloudClient.TerraformCloud(process.env.TFC_TOKEN)
+export async function getWorkspaceOutputs(organizationName, workspaceName, token) {
+    const client = new TerraformCloudClient.TerraformCloud(token)
     const workspaceId = (await client.Workspaces.showByName(organizationName, workspaceName)).id;
     const stateVersion = await client.StateVersions.current(workspaceId, true);
 
-    const outputs = stateVersion.included.reduce((acc, output) => {
+    const outputs = stateVersion?.included?.reduce((acc, output) => {
         acc[output.attributes.name] = output.attributes.value;
         return acc
       }, {})

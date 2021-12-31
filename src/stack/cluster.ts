@@ -5,18 +5,16 @@ import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
 import { Project, ProjectResources, Vpc, KubernetesCluster, SpacesBucket, Certificate, Droplet, Loadbalancer, Cdn, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
 interface StackProps {
-  env: string
   repo: string
   tag: string
-  key: string
 }
 
 export default class Cluster extends TerraformStack{
   public readonly vpc: Vpc
   public readonly cluster: KubernetesCluster
   public readonly db: DatabaseCluster
-  constructor(app: Construct, name: string, props?: StackProps) {
-    super(app, name)
+  constructor(scope: Construct, id: string, props?: StackProps) {
+    super(scope, id)
 
     //TODO: make dynamic
     const region = 'nyc3'
@@ -26,16 +24,9 @@ export default class Cluster extends TerraformStack{
     const k8ver = '1.21.5-do.0';
     const dropletSize = 's-1vcpu-2gb';
 
-    const env = props?.env ?? 'dev'
     const repo = props?.repo ?? 'sample-app'
     const tag = props?.tag ?? 'main'
-    const key = props?.key ?? 'do-k8s'
 
-    // console.log('repo:', repo)
-    // console.log('tag:', tag)
-    //
-    const id = `${env}-${key}`
-    
     new DigitaloceanProvider(this, `${id}-provider`, {
       token: process.env.DO_TOKEN,
       spacesAccessId: process.env.DO_SPACES_ACCESS_KEY_ID,
@@ -43,12 +34,12 @@ export default class Cluster extends TerraformStack{
     })
  
     const vpc = new Vpc(this, `${id}-vpc`, {
-      name: `${prefix}-my-vpc-${suffix}`,
+      name: `${prefix}-vpc-${suffix}`,
       region: region
     })
   
     const project = new Project(this, `${id}-project`, {
-      name: `${env}`
+      name: `${process.env.STACK_ENV}`
     })
 
     const cluster = new KubernetesCluster(this, `${id}-k8s`, {
@@ -78,7 +69,7 @@ export default class Cluster extends TerraformStack{
 
     new DatabaseDb(this, `${id}-db`, {
       clusterId: `${db.id}`,
-      name: `${env}`
+      name: `${id}`
     })
 
     const bucket = new SpacesBucket(this, `${id}-bucket`,{
@@ -164,9 +155,9 @@ export default class Cluster extends TerraformStack{
 
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
-      organization: 'cto-ai',
+      organization: process?.env?.TFC_ORG ?? '',
       workspaces: {
-        name: 'dev-do-k8s'
+        name: id
       }
     })
   }
