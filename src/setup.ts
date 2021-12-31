@@ -7,6 +7,11 @@ const pexec = util.promisify(oexec);
 
 async function run() {
 
+  // make sure terraform has the appropriate credentials in rc
+  const tfrc = '/home/ops/.terraform.d/credentials.tfrc.json'
+  await exec(`sed -i 's/{{token}}/${process.env.TFC_TOKEN}/g'  ${tfrc}`)
+    .catch(e => { console.log(e)})
+
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
 
   sdk.log(`🛠 Loading up ${STACK_TYPE} stack...`)
