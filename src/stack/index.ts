@@ -4,35 +4,59 @@ import Service from './service'
 import Registry from './registry'
 
 interface StackProps {
+  org: string
+  env: string
   repo: string
   tag: string
   key: string
+  entropy: string
 }
 
 export class Stack {
 
+  public readonly org: string
+  public readonly env: string
   public readonly repo: string
   public readonly tag: string
   public readonly key: string
+  public readonly entropy: string
 
   constructor(props?: StackProps) {
+    this.org = props?.org ?? 'cto-ai'
+    this.env = props?.env ?? 'dev'
+    this.key = props?.key ?? 'do-k8s'
     this.repo = props?.repo ?? 'sample-app'
     this.tag = props?.tag ?? 'main'
-    this.key = props?.key ?? 'do-k8s'
+    this.entropy = props?.entropy ?? '01012022'
 
     const app = new App();
 
-    const registry = new Registry(app, `${this.repo}`, {
-      repo: this.repo
+    const registry = new Registry(app, `registry-${this.key}`, {
+      org: this.org,
+      env: this.env,
+      key: this.key,
+      repo: this.repo,
+      entropy: this.entropy
     })
 
     // create each vpc, cluster & db
     const cluster = new Cluster(app, `dev-${this.key}`, {
+      org: this.org,
+      env: this.env,
+      key: this.key,
       repo: this.repo,
-      tag: this.tag
+      tag: this.tag,
+      entropy: this.entropy
     })
 
-    const service = new Service(app, `dev-${this.repo}`)
+    const service = new Service(app, `dev-${this.repo}-${this.key}`, {
+      org: this.org,
+      env: this.env,
+      key: this.key,
+      repo: this.repo,
+      tag: this.tag,
+      entropy: this.entropy
+    })
 
     app.synth()
 

@@ -5,8 +5,9 @@ commands:
     description: "setup an environment"
     env:
       static:
+        - STACK_ORG=cto-ai
         - STACK_TYPE=do-k8s
-        - TFC_ORG=cto-ai
+        - STACK_ENTROPY=01012022
       secrets:
         - DO_TOKEN
         - DO_SPACES_ACCESS_KEY_ID
