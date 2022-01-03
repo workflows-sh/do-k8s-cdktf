@@ -32,6 +32,9 @@ RUN wget https://github.com/digitalocean/doctl/releases/download/v1.66.0/doctl-1
 RUN tar xf ./doctl-1.66.0-linux-amd64.tar.gz
 RUN mv ./doctl /usr/local/bin
 
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
 ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
 ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 

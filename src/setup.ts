@@ -68,23 +68,23 @@ async function run() {
   // process.env.KUBE_CONFIG = secret[`${STACK_ENV.toUpperCase()}_KUBE_CONFIG`]
 
   sdk.log(`📦 Setting up the stack...`)
-  await exec(`./node_modules/.bin/cdktf synth`, {
-    env: { 
-      ...process.env, 
-      CDKTF_LOG_LEVEL: 'info',
-      STACK_ENV: STACK_ENV,
-      STACK_TYPE: STACK_TYPE, 
-      STACK_REPO: STACK_REPO,
-      STACK_TAG: STACK_TAG
-    }
-  })
-  .catch(e => {
-    console.log('Could not synthesize', e)
-    process.exit(1)
-  })
+  // await exec(`./node_modules/.bin/cdktf synth`, {
+    // env: { 
+      // ...process.env, 
+      // CDKTF_LOG_LEVEL: 'info',
+      // STACK_ENV: STACK_ENV,
+      // STACK_TYPE: STACK_TYPE, 
+      // STACK_REPO: STACK_REPO,
+      // STACK_TAG: STACK_TAG
+    // }
+  // })
+  // .catch(e => {
+    // console.log('Could not synthesize', e)
+    // process.exit(1)
+  // })
 
   // sync stacks>workspaces for separated imperative state
-  console.log(`🛠 We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for your stack...\n`)
+  console.log(`🛠  We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for your stack...\n`)
   const errors:any[] = [] 
   for(const stack of STACKS[STACK_ENV]) {
     ux.print(`✅ Setting up a ${ux.colors.green(stack)} workspace in Terraform Cloud...`)
@@ -123,7 +123,7 @@ async function run() {
   .then(async () => {
 
     let url = `https://app.terraform.io/app/${process.env.STACK_ORG}/workspaces/`
-    console.log(`✅ Stacks are being applied. View in ${ux.url('Terraform Cloud', url)}.`)
+    console.log(`✅ View progress in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
 
      try {
 
@@ -134,9 +134,11 @@ async function run() {
         Object.assign(outputs, output)
      }))
 
-      const K8S_CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_KUBE_CONFIG`.toUpperCase().replace('-','_')
+      const CONFIG_KEY = `${STACK_ENV}_CONFIG`
+      const K8S_SECRET_KEY = `${STACK_ENV}_${STACK_TYPE}_KUBE_CONFIG`.toUpperCase().replace('-','_')
+
       // If we don't already have a kube config, let's get it and store it
-      if(!process.env[K8S_CONFIG_KEY]) {
+      if(!process.env[K8S_SECRET_KEY]) {
 
         console.log('🔒 Syncing state with vault.')
 
@@ -146,16 +148,32 @@ async function run() {
 
         const config = await pexec('cat ~/.kube/config')
         //console.log(config.stdout)
+        console.log('')
 
         // save the KubeConfig to secret store using the env and stack name prefix
-        sdk.setSecret(K8S_CONFIG_KEY, config.stdout)
-        ux.print(`✅ Saved k8s config to vault for ${outputs.cluster.name} as ${K8S_CONFIG_KEY}`)
-        console.log(`⚠️  Here is the k8s config: ${ux.colors.italic('please upload to Lens or save to ~/.kube/config')}`)
+        sdk.setSecret(K8S_SECRET_KEY, config.stdout)
+        ux.print(`✅ Saving k8s config to team vault for ${outputs.cluster.name} as ${K8S_SECRET_KEY}`)
+        console.log(`⚠️  You can configure this k8s config in ~/.kube/config or upload it to Lens:`)
         console.log(config.stdout)
+        console.log('')
+
+        await exec(`doctl auth init -t ${process.env.DO_TOKEN}`)
+          .catch(err => console.log(err))
+
+        await exec(`doctl registry login -t ${process.env.DO_TOKEN}`)
+          .catch(err => console.log(err))
+
+        console.log(`\n🚀 Confirming connection to ${outputs.cluster.name}:`)
+        await exec('kubectl get nodes')
+          .catch(err => console.log(err))
+
+        console.log(`\n🔒 Configuring k8s cluster with access to registry ${outputs.registry.name}`)
+        await exec(`doctl registry kubernetes-manifest | kubectl apply -f -`)
+          .catch(err => console.log(err))
        }
 
-      console.log('✅ Vault sync for your stacks is complete.')
-      console.log('Retrieved the following outputs from your stacks:')
+      console.log('\n✅ The output => vault sync for your stacks is complete.')
+      console.log(`Saving the following outputs in your team config as ${CONFIG_KEY}:`)
       console.log(outputs)
 
     } catch (e) {
