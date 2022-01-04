@@ -66,7 +66,9 @@ export default class Cluster extends TerraformStack{
       nodePool: {
         name: `${this.id}-k8s-node-${this.org}-${this.entropy}`,
         size: dropletSize,
-        nodeCount: 3
+        nodeCount: 3,
+        minNodes: 1,
+        maxNodes: 5
       },
     });
 
