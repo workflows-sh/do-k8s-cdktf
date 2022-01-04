@@ -106,7 +106,6 @@ export default class Cluster extends TerraformStack{
       certificateName: stackCert.name
     })
 
-    
     const vm_lb = new Droplet(this, `${this.id}-lb-vm`, {
       name: `${this.env}-lb-vm-${this.org}-${this.entropy}`,
       size: dropletSize,

@@ -2,7 +2,7 @@ version: "1"
 commands:
   - name: setup:0.2.0
     run: ./node_modules/.bin/ts-node /ops/src/setup.ts
-    description: "setup an environment"
+    description: "Setup Kubernetes infrastructure on Digital Ocean"
     env:
       static:
         - STACK_ORG=cto-ai

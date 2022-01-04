@@ -12,7 +12,9 @@ async function run() {
   await exec(`sed -i 's/{{token}}/${process.env.TFC_TOKEN}/g'  ${tfrc}`)
     .catch(e => { console.log(e)})
 
+  const STACK_ORG = process.env.STACK_ORG || ''
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+  const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
   sdk.log(`🛠 Loading up ${STACK_TYPE} stack...`)
 
@@ -67,7 +69,7 @@ async function run() {
   // const secret = await sdk.getSecret(`${STACK_ENV.toUpperCase()}_KUBE_CONFIG`) 
   // process.env.KUBE_CONFIG = secret[`${STACK_ENV.toUpperCase()}_KUBE_CONFIG`]
 
-  sdk.log(`📦 Setting up the stack...`)
+  sdk.log(`\n📦 Setting up the ${ux.colors.white(STACK_TYPE)} ${ux.colors.white(STACK_ENV)} stack for ${ux.colors.white(STACK_TEAM)} team...`)
   // await exec(`./node_modules/.bin/cdktf synth`, {
     // env: { 
       // ...process.env, 
@@ -84,12 +86,12 @@ async function run() {
   // })
 
   // sync stacks>workspaces for separated imperative state
-  console.log(`🛠  We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for your stack...\n`)
+  console.log(`🛠  We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for the ${ux.colors.white(STACK_ORG)} organization...\n`)
   const errors:any[] = [] 
   for(const stack of STACKS[STACK_ENV]) {
     ux.print(`✅ Setting up a ${ux.colors.green(stack)} workspace in Terraform Cloud...`)
    try {
-      let res = await createWorkspace(process?.env?.STACK_ORG ?? '', stack, process?.env?.TFC_TOKEN ?? '')
+      let res = await createWorkspace(STACK_ORG, stack, process?.env?.TFC_TOKEN ?? '')
     } catch(e) {
       errors.push(ux.colors.gray(`   - ${ux.colors.green(stack)}: ${e} \n`) as string)
     }
@@ -108,7 +110,7 @@ async function run() {
     return  `./node_modules/.bin/cdktf deploy --auto-approve ${stack}`
   })
 
-  ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')}...`)
+  ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')} for the ${ux.colors.white(STACK_ORG)} organization...`)
   await exec(stacks.join(' && '), {
     env: { 
       ...process.env, 
@@ -122,7 +124,7 @@ async function run() {
   // Get the AWS command to retrieve kube config
   .then(async () => {
 
-    let url = `https://app.terraform.io/app/${process.env.STACK_ORG}/workspaces/`
+    let url = `https://app.terraform.io/app/${STACK_ORG}/workspaces/`
     console.log(`✅ View progress in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
 
      try {
@@ -130,17 +132,17 @@ async function run() {
       // get workspace outputs
       const outputs:any = {}
       await Promise.all(STACKS[STACK_ENV].map(async (stack) => {
-        let output = await getWorkspaceOutputs(process?.env?.STACK_ORG ?? '', stack, process?.env?.TFC_TOKEN ?? '')
+        let output = await getWorkspaceOutputs(STACK_ORG, stack, process?.env?.TFC_TOKEN ?? '')
         Object.assign(outputs, output)
      }))
 
-      const CONFIG_KEY = `${STACK_ENV}_CONFIG`
+      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_OUTPUTS`.toUpperCase().replace('-','_')
       const K8S_SECRET_KEY = `${STACK_ENV}_${STACK_TYPE}_KUBE_CONFIG`.toUpperCase().replace('-','_')
 
       // If we don't already have a kube config, let's get it and store it
       if(!process.env[K8S_SECRET_KEY]) {
 
-        console.log('🔒 Syncing state with vault.')
+        console.log(`\n🔒 Syncing state with ${ux.colors.white(STACK_TEAM)} workflow secrets & configs`)
 
         // get the dok8s kubeconfig
         await exec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
@@ -151,10 +153,10 @@ async function run() {
         console.log('')
 
         // save the KubeConfig to secret store using the env and stack name prefix
-        sdk.setSecret(K8S_SECRET_KEY, config.stdout)
-        ux.print(`✅ Saving k8s config to team vault for ${outputs.cluster.name} as ${K8S_SECRET_KEY}`)
-        console.log(`⚠️  You can configure this k8s config in ~/.kube/config or upload it to Lens:`)
-        console.log(config.stdout)
+        await sdk.setSecret(K8S_SECRET_KEY, config.stdout)
+        ux.print(`✅ Saving k8s config to team vault for ${ux.colors.white(outputs.cluster.name)} as ${ux.colors.white(K8S_SECRET_KEY)}`)
+        console.log(`⚠️  You can configure this k8s config in ~/.kube/config or upload it to Lens:\n`)
+        console.log(ux.colors.grey(config.stdout))
         console.log('')
 
         await exec(`doctl auth init -t ${process.env.DO_TOKEN}`)
@@ -163,20 +165,30 @@ async function run() {
         await exec(`doctl registry login -t ${process.env.DO_TOKEN}`)
           .catch(err => console.log(err))
 
-        console.log(`\n🚀 Confirming connection to ${outputs.cluster.name}:`)
+        console.log(`\n⚡️ Confirming connection to ${outputs.cluster.name}:`)
         await exec('kubectl get nodes')
           .catch(err => console.log(err))
 
-        console.log(`\n🔒 Configuring k8s cluster with access to registry ${outputs.registry.name}`)
+        console.log(`\n🔒 Configuring k8s cluster with access to registry ${ux.colors.white(outputs.registry.name)}`)
         await exec(`doctl registry kubernetes-manifest | kubectl apply -f -`)
           .catch(err => console.log(err))
        }
 
       console.log('\n✅ The output => vault sync for your stacks is complete.')
-      console.log(`Saving the following outputs in your team config as ${CONFIG_KEY}:`)
+      console.log(`Saving the following outputs in your team config as ${ux.colors.white(CONFIG_KEY)}:`)
+      await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
       console.log(outputs)
 
+      console.log('\n🚀 Deploying a hello world application to cluster to finalize setup...')
+      await exec('kubectl apply -f src/kubectl/hello-world/')
+        .catch(err => console.log(err))
+
+      console.log('\n✅ Deployed. Load Balancer is provisioning...')
+      console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or Lens for status.`)
+      console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)
+
     } catch (e) {
+      console.log
       process.exit(1)
     }
 
