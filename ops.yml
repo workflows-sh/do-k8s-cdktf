@@ -5,9 +5,9 @@ commands:
     description: "Setup Kubernetes infrastructure on Digital Ocean"
     env:
       static:
-        - STACK_ORG=cto-ai
         - STACK_TYPE=do-k8s
         - STACK_ENTROPY=01012022
+        - TFC_ORG=cto-ai
       secrets:
         - DO_TOKEN
         - DO_SPACES_ACCESS_KEY_ID

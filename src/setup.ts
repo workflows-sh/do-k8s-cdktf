@@ -16,7 +16,7 @@ async function run() {
   await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
     .catch(err => console.log(err))
 
-  const STACK_ORG = process.env.STACK_ORG || ''
+  const TFC_ORG = process.env.TFC_ORG || ''
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
@@ -71,12 +71,12 @@ async function run() {
   sdk.log(`\n📦 Setting up the ${ux.colors.white(STACK_TYPE)} ${ux.colors.white(STACK_ENV)} stack for ${ux.colors.white(STACK_TEAM)} team...`)
 
   // sync stacks>workspaces for separated imperative state
-  console.log(`🛠  We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for the ${ux.colors.white(STACK_ORG)} organization...\n`)
+  console.log(`🛠  We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for the ${ux.colors.white(TFC_ORG)} organization...\n`)
   const errors:any[] = [] 
   for(const stack of STACKS[STACK_ENV]) {
     ux.print(`✅ Setting up a ${ux.colors.green(stack)} workspace in Terraform Cloud...`)
    try {
-      let res = await createWorkspace(STACK_ORG, stack, process?.env?.TFC_TOKEN ?? '')
+      let res = await createWorkspace(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
     } catch(e) {
       errors.push(ux.colors.gray(`   - ${ux.colors.green(stack)}: ${e} \n`) as string)
     }
@@ -95,7 +95,7 @@ async function run() {
     return  `./node_modules/.bin/cdktf deploy --auto-approve ${stack}`
   })
 
-  ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')} for the ${ux.colors.white(STACK_ORG)} organization...`)
+  ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')} for the ${ux.colors.white(TFC_ORG)} organization...`)
   await exec(stacks.join(' && '), {
     env: { 
       ...process.env, 
@@ -109,7 +109,7 @@ async function run() {
   // post processing
   .then(async () => {
 
-    let url = `https://app.terraform.io/app/${STACK_ORG}/workspaces/`
+    let url = `https://app.terraform.io/app/${TFC_ORG}/workspaces/`
     console.log(`✅ View progress in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
 
      try {
@@ -119,11 +119,11 @@ async function run() {
       // get workspace outputs
       const outputs:any = {}
       await Promise.all(STACKS[STACK_ENV].map(async (stack) => {
-        let output = await getWorkspaceOutputs(STACK_ORG, stack, process?.env?.TFC_TOKEN ?? '')
+        let output = await getWorkspaceOutputs(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
         Object.assign(outputs, output)
       }))
 
-      // populate hte kubeconfig from doctl
+      // populate our kubeconfig from doctl into the container
       await exec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
         .catch(err => { throw err })
 
