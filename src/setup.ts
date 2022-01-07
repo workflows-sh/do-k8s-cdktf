@@ -132,7 +132,7 @@ async function run() {
       await exec('kubectl get nodes')
         .catch(err => console.log(err))
 
-      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace('-','_')
+      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
       // If state doesn't exist, lets bootstrap the cluster
       if(!process.env[CONFIG_KEY]) {
 
