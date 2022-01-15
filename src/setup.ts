@@ -8,6 +8,7 @@ const pexec = util.promisify(oexec);
 async function run() {
 
   // make sure terraform config is setup for ephemeral state
+  // TODO @kc refactor this to .terraformrc to avoid conflict 
   const tfrc = '/home/ops/.terraform.d/credentials.tfrc.json'
   await pexec(`sed -i 's/{{token}}/${process.env.TFC_TOKEN}/g' ${tfrc}`)
     .catch(e => console.log(e))
@@ -142,8 +143,7 @@ async function run() {
 
        }
 
-      console.log('\n✅ The output => vault sync for your stacks is complete.')
-      console.log(`Saving the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
+      console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
       console.log(outputs)
 
