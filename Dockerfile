@@ -16,6 +16,7 @@ RUN apt-get update && \
         mysql-client \
         unzip \
         wget \
+        jq \
     && pip3 install --upgrade pip
 
 RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/install.sh | bash

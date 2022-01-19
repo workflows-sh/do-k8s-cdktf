@@ -6,8 +6,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "get": "./node_modules/.bin/cdktf",
-    "synth": "./node_modules/.bin/cdktf",
+    "get": "./node_modules/.bin/cdktf get",
+    "synth": "./node_modules/.bin/cdktf synth",
     "cdktf": "./node_modules/.bin/cdktf",
     "compile": "tsc --pretty",
     "watch": "tsc -w",
@@ -21,6 +21,7 @@
     "cdktf-cli": "^0.8.0",
     "constructs": "^10.0.9",
     "run": "^1.4.0",
+    "simple-argv": "^2.0.4",
     "ts-node": "^10.4.0"
   },
   "devDependencies": {

@@ -21,7 +21,7 @@ async function run() {
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
-  sdk.log(`🛠 Loading up ${STACK_TYPE} stack...`)
+  sdk.log(`🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)}...`)
 
   const { STACK_ENV } = await ux.prompt<{
     STACK_ENV: string
