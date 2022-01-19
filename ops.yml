@@ -17,12 +17,6 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
-        - DEV_DO_K8S_CLUSTER_VAULT_ARN
-        - STG_DO_K8S_CLUSTER_VAULT_ARN
-        - PRD_DO_K8S_CLUSTER_VAULT_ARN
-        - DEV_DO_K8S_SERVICE_VAULT_ARN
-        - STG_DO_K8S_SERVICE_VAULT_ARN
-        - PRD_DO_K8S_SERVICE_VAULT_ARN
   - name: vault:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/vault.ts
     description: "manage secrets vault"
