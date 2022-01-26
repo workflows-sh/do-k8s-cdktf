@@ -25,7 +25,7 @@ RUN . $NVM_DIR/nvm.sh \
     && nvm alias default $NODE_VERSION \
     && nvm use default
 
-RUN wget https://releases.hashicorp.com/terraform/1.1.2/terraform_1.1.2_linux_arm64.zip -O terraform.zip
+RUN wget https://releases.hashicorp.com/terraform/1.1.4/terraform_1.1.4_linux_386.zip -O terraform.zip
 RUN unzip terraform.zip
 RUN mv terraform /usr/local/bin/
 

@@ -1,7 +1,6 @@
 /*.js
 node_modules/
-cdk.out
 .DS_Store
-cdktf*
+cdktf.out*
 credentials*
 .gen
