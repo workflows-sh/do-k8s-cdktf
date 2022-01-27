@@ -1,0 +1,6 @@
+.gen
+node_modules
+cdktf.out
+index.js
+src/*.js
+src/*/**.js
