@@ -29,10 +29,17 @@ async function init() {
     const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
     const VAULT_KEY = `${STACK_ENV}-${STACK_TYPE}`
     const STATE_KEY = `${PREFIX}_STATE`
-
     const STATE = process.env[`${STATE_KEY}`]
-    const outputs = JSON.parse(STATE || '')
 
+    if(!STATE) {
+      console.log('')
+      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store.`)
+      await ux.print(`You may need to run the setup workflow to populate the state into your team config.`)
+      console.log('')
+      process.exit()
+    }
+
+    const outputs = JSON.parse(STATE || '')
     // make sure doctl config is setup for the ephemeral state
     await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
       .catch(err => console.log(err))
@@ -73,6 +80,15 @@ async function create() {
     const VAULT_KEY = `${STACK_ENV}-${STACK_TYPE}`
     const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
     const STATE_KEY = `${PREFIX}_STATE`
+    const STATE = process.env[`${STATE_KEY}`]
+
+    if(!STATE) {
+      console.log('')
+      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store.`)
+      await ux.print(`You may need to run the setup workflow to populate the state into your team config.`)
+      console.log('')
+      process.exit()
+    }
 
     const { confirmation } = await ux.prompt<{
       confirmation: boolean
@@ -86,9 +102,7 @@ async function create() {
       return console.log('Exiting...')
     }
 
-    const STATE = process.env[`${STATE_KEY}`]
     const outputs = JSON.parse(STATE || '')
-
     // make sure doctl config is setup for the ephemeral state
     await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
       .catch(err => console.log(err))
@@ -142,10 +156,17 @@ async function list() {
     const VAULT_KEY = `${STACK_ENV}-${STACK_TYPE}`
     const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
     const STATE_KEY = `${PREFIX}_STATE`
-
     const STATE = process.env[`${STATE_KEY}`]
-    const outputs = JSON.parse(STATE || '')
 
+    if(!STATE) {
+      console.log('')
+      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store.`)
+      await ux.print(`You may need to run the setup workflow to populate the state into your team config.`)
+      console.log('')
+      process.exit()
+    }
+
+    const outputs = JSON.parse(STATE || '')
     // make sure doctl config is setup for the ephemeral state
     await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
       .catch(err => console.log(err))
@@ -198,6 +219,15 @@ async function remove() {
     const VAULT_KEY = `${STACK_ENV}-${STACK_TYPE}`
     const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
     const STATE_KEY = `${PREFIX}_STATE`
+    const STATE = process.env[`${STATE_KEY}`]
+
+    if(!STATE) {
+      console.log('')
+      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store.`)
+      await ux.print(`You may need to run the setup workflow to populate the state into your team config.`)
+      console.log('')
+      process.exit()
+    }
 
     const { confirmation } = await ux.prompt<{
       confirmation: boolean
@@ -211,9 +241,7 @@ async function remove() {
       return console.log('Exiting...')
     }
 
-    const STATE = process.env[`${STATE_KEY}`]
     const outputs = JSON.parse(STATE || '')
-
     // make sure doctl config is setup for the ephemeral state
     await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
       .catch(err => console.log(err))
@@ -269,6 +297,15 @@ async function destroy() {
     const VAULT_KEY = `${STACK_ENV}-${STACK_TYPE}`
     const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
     const STATE_KEY = `${PREFIX}_STATE`
+    const STATE = process.env[`${STATE_KEY}`]
+
+    if(!STATE) {
+      console.log('')
+      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store.`)
+      await ux.print(`You may need to run the setup workflow to populate the state into your team config.`)
+      console.log('')
+      process.exit()
+    }
 
     const { confirmation } = await ux.prompt<{
       confirmation: boolean
@@ -282,10 +319,7 @@ async function destroy() {
       return console.log('Exiting...')
     }
 
-
-    const STATE = process.env[`${STATE_KEY}`]
     const outputs = JSON.parse(STATE || '')
-
     // make sure doctl config is setup for the ephemeral state
     await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
       .catch(err => console.log(err))
