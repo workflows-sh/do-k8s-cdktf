@@ -113,7 +113,8 @@ export async function createWorkspace(
     JSON.stringify({
       data: {
         attributes: {
-          name: workspaceName
+          name: workspaceName,
+          'global-remote-state': false
         },
         type: "workspaces",
       },
