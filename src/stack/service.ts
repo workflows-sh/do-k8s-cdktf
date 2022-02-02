@@ -142,8 +142,8 @@ export default class Service extends TerraformStack{
           },
           spec: {
             containers: [{
-              image: `digitalocean/flask-helloworld:latest`, // TODO: @BC or @KC replace with ...
-              // image: `${this.props.registry.endpoint}/${this.repo}:${this.tag}`,
+              //image: `digitalocean/flask-helloworld:latest`, // uncomment to test
+              image: `${this.props.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
               name: `${this.repo}`,
               env: env,
               ports: [{
