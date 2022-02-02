@@ -17,6 +17,23 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
+  - name: deploy:0.1.0
+    run: ./node_modules/.bin/ts-node /ops/src/deploy.ts
+    description: "Deploy a service to Kubernetes infrastructure on Digital Ocean"
+    env:
+      static:
+        - STACK_TYPE=do-k8s
+        - STACK_ENTROPY=01012022
+        - TFC_ORG=cto-ai
+      secrets:
+        - DO_TOKEN
+        - DO_SPACES_ACCESS_KEY_ID
+        - DO_SPACES_SECRET_ACCESS_KEY
+        - TFC_TOKEN
+      configs:
+        - DEV_DO_K8S_STATE
+        - STG_DO_K8S_STATE
+        - PRD_DO_K8S_STATE
   - name: vault:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/vault.ts
     description: "manage secrets vault"
