@@ -21,7 +21,7 @@ async function run() {
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
-  sdk.log(`🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)}...`)
+  sdk.log(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
 
   const { STACK_ENV } = await ux.prompt<{
     STACK_ENV: string
@@ -67,6 +67,31 @@ async function run() {
 
   if(!STACKS[STACK_ENV].length) {
     return console.log('Please try again with environment set to <dev|stg|prd|all>')
+  }
+
+  try {
+    console.log(`\n🛰  Attempting to bootstrap ${ux.colors.white(STACK_ENV)} state...`)
+    const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
+    const STATE_KEY = `${PREFIX}_STATE`
+    const STATE = process.env[`${STATE_KEY}`]
+
+    const outputs = JSON.parse(STATE || '')
+    // make sure doctl config is setup for the ephemeral state
+    console.log(`\n🔐 Configuring access to ${ux.colors.white(STACK_ENV)} cluster`)
+    await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
+      .catch(err => console.log(err))
+
+    // populate our kubeconfig from doctl into the container
+    await exec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+      .catch(err => { throw err })
+
+    // confirm we can connect to the cluster to see nodes
+    console.log(`\n⚡️ Confirming connection to ${ux.colors.white(outputs.cluster.name)}:`)
+      await exec('kubectl get nodes')
+        .catch(err => console.log(err))
+
+  } catch(e) {
+    console.log(`⚠️  Could not boostrap ${ux.colors.white(STACK_ENV)} state. Proceeding with setup...`)
   }
 
   sdk.log(`\n📦 Setting up the ${ux.colors.white(STACK_TYPE)} ${ux.colors.white(STACK_ENV)} stack for ${ux.colors.white(STACK_TEAM)} team...`)
@@ -147,22 +172,18 @@ async function run() {
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
       console.log(outputs)
 
-      console.log('\n🚀 Deploying a hello world application to cluster to finalize setup...')
-      await exec('kubectl apply -f src/kubectl/hello-world/')
-        .catch(err => console.log(err))
-
       console.log('\n✅ Deployed. Load Balancer is provisioning...')
       console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or Lens for status.`)
       console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)
 
     } catch (e) {
-      console.log
+      console.log('There was an error updating workflow state', e)
       process.exit(1)
     }
 
   })
   .catch(e => {
-    console.log('Could not deploy infrastructure', e)
+    console.log('There was an error deploying the infrastructure.')
     process.exit(1)
   })
 

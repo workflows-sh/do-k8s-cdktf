@@ -1,6 +1,6 @@
 import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
-import { TerraformStack, TerraformOutput, TerraformRemoteState,  } from 'cdktf'
+import { TerraformStack, TerraformOutput } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
 import { Project, ProjectResources, Vpc, KubernetesCluster, SpacesBucket, Certificate, Droplet, Loadbalancer, Cdn, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
@@ -14,9 +14,10 @@ interface StackProps {
 }
 
 export default class Cluster extends TerraformStack{
-  public readonly vpc: Vpc
-  public readonly cluster: KubernetesCluster
-  public readonly db: DatabaseCluster
+  public vpc: Vpc
+  public cluster: KubernetesCluster
+  public db: DatabaseCluster
+
   public readonly props: StackProps | undefined
   public readonly id: string | undefined
   public readonly org: string | undefined
@@ -28,12 +29,6 @@ export default class Cluster extends TerraformStack{
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
-
-    //TODO: make dynamic
-    const region = 'nyc3'
-    const domains = ['tryapp.xyz', '*.tryapp.xyz']
-    const k8ver = '1.21.5-do.0';
-    const dropletSize = 's-1vcpu-2gb';
 
     this.id = id
     this.props = props
@@ -49,7 +44,25 @@ export default class Cluster extends TerraformStack{
       spacesAccessId: process.env.DO_SPACES_ACCESS_KEY_ID,
       spacesSecretKey: process.env.DO_SPACES_SECRET_ACCESS_KEY
     })
- 
+
+    new RemoteBackend(this, {
+      hostname: 'app.terraform.io',
+      organization: this.org,
+      workspaces: {
+        name: this.id
+      }
+    })
+
+  }
+
+  async initialize() {
+
+    //TODO: make dynamic
+    const region = 'nyc3'
+    const domains = ['tryapp.xyz', '*.tryapp.xyz']
+    const k8ver = '1.21.5-do.0';
+    const dropletSize = 's-1vcpu-2gb'; 
+
     const vpc = new Vpc(this, `${this.id}-vpc`, {
       name: `${this.env}-vpc-${this.org}-${this.entropy}`,
       region: region
@@ -97,13 +110,13 @@ export default class Cluster extends TerraformStack{
       acl: 'private'
     })
 
-    const stackCert = new Certificate(this, `${id}-cert`,{
+    const stackCert = new Certificate(this, `${this.id}-cert`,{
       name: `${this.key}-ssl-${this.org}-${this.entropy}`,
       type: 'lets_encrypt',
       domains: domains
     })
 
-    new Cdn(this, `${id}-cdn`, {
+    new Cdn(this, `${this.id}-cdn`, {
       origin:  bucket.bucketDomainName,
       certificateName: stackCert.name
     })
@@ -159,7 +172,8 @@ export default class Cluster extends TerraformStack{
         name: this.cluster.name,
         endpoint: this.cluster.endpoint,
         version: this.cluster.version,
-        urn: this.cluster.urn
+        urn: this.cluster.urn,
+        id: this.cluster.id
       }
     })
     new TerraformOutput(this, 'db', {
@@ -171,12 +185,5 @@ export default class Cluster extends TerraformStack{
       }
     })
 
-    new RemoteBackend(this, {
-      hostname: 'app.terraform.io',
-      organization: this.org,
-      workspaces: {
-        name: this.id
-      }
-    })
   }
 }
