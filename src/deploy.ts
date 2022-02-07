@@ -1,8 +1,7 @@
-import fs from 'fs'
 import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
-import { createWorkspace, getWorkspaceOutputs } from './helpers/tfc/index'
+import { getWorkspaceOutputs } from './helpers/tfc/index'
 const pexec = util.promisify(oexec);
 
 async function run() {
@@ -21,7 +20,7 @@ async function run() {
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
-  sdk.log(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
+  await ux.print(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
 
   const { STACK_ENV } = await ux.prompt<{
     STACK_ENV: string
