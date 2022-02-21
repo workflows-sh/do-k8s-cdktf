@@ -121,40 +121,14 @@ export default class Cluster extends TerraformStack{
       certificateName: stackCert.name
     })
 
-    const vm_lb = new Droplet(this, `${this.id}-lb-vm`, {
-      name: `${this.env}-lb-vm-${this.org}-${this.entropy}`,
-      size: dropletSize,
-      region: region,
-      image: 'ubuntu-20-04-x64',
-      tags: [`${this.env}-lb-vm-${this.org}-${this.entropy}`],
-      vpcUuid: vpc.id
-    })
-
-    const lb = new Loadbalancer(this, `${this.id}-lb`, {
-      name: `${this.env}-lb-${this.org}-${this.entropy}`,
-      region: region,
-      forwardingRule:[{
-        entryPort: 443,
-        entryProtocol: 'https',
-        targetPort: 80,
-        targetProtocol: 'http',
-        certificateName: stackCert.name,
-      }],
-      vpcUuid: vpc.id,
-      dropletTag: `${this.env}-lb-vm-${this.org}-${this.entropy}`,
-      dependsOn: [ vm_lb ]
-    })
-
     new ProjectResources(this, `${this.id}-resources`, {
       project: project.id,
       resources: [
-        lb.urn,
         bucket.urn,
-        vm_lb.urn,
         cluster.urn,
         db.urn
       ],
-      dependsOn: [ project, lb, bucket, vm_lb, cluster, db ]
+      dependsOn: [ project, bucket, cluster, db ]
     })
 
     this.vpc = vpc
