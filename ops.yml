@@ -55,5 +55,43 @@ commands:
         list: 'list keys in the environment vault'
         remove: ' remove a specific key in the environment vault'
         destroy: 'destroy the environment vault'
-
+pipelines:
+  - name: sample-app-pipeline:0.1.0
+    description: build a release for deployment
+    env:
+      static:
+        - DEBIAN_FRONTEND=noninteractive
+        - STACK_TYPE=do-k8s
+        - ORG=cto-ai
+        - REPO=sample-app
+        - REF=dev
+      secrets:
+        - GITHUB_TOKEN
+        - DO_TOKEN
+    # events:
+      # - "github:crystalcommerce/marketplace-app:pull_request.opened"
+    jobs:
+      - name: sample-app-build-job
+        description: example build step
+        packages:
+          - git
+          - unzip
+          - python
+          - wget
+          - tar
+        bind:
+          - /path/to/host/repo:/ops/application
+          - /Users/slajax/repos/cto.ai/dev/workflows/sample-app:/ops/application
+        steps:
+          - wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
+          - tar xf ./doctl-1.68.0-linux-amd64.tar.gz
+          - ./doctl version
+          # - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
+          # - cd $REPO && ls -asl
+          # - git fetch && git checkout $REF
+          - cd application && ls -asl
+          - ../doctl auth init -t $DO_TOKEN
+          - ../doctl registry login
+          - docker build -f Dockerfile -t registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF .
+          - docker push registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF
 
