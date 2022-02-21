@@ -114,6 +114,7 @@ export async function createWorkspace(
       data: {
         attributes: {
           name: workspaceName,
+          'execution-mode': 'local',
           'global-remote-state': false
         },
         type: "workspaces",

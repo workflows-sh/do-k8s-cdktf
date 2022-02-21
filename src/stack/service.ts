@@ -1,8 +1,7 @@
 import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput } from 'cdktf'
-import { DigitaloceanProvider, SpacesBucket, ContainerRegistry } from '../../.gen/providers/digitalocean';
-import { KubernetesProvider } from '../../.gen/providers/kubernetes/kubernetes-provider'
+import { DigitaloceanProvider, SpacesBucket } from '../../.gen/providers/digitalocean';
 import { KubectlProvider } from '../../.gen/providers/kubectl/kubectl-provider'
 import { Manifest } from '../../.gen/providers/kubectl/manifest'
 
@@ -77,16 +76,6 @@ export default class Service extends TerraformStack{
       loadConfigFile: true
     })
 
-    const k8s = new KubernetesProvider(this, `${this.id}-kubernetes-provider`, {
-      host: this.props?.cluster?.cluster?.endpoint,
-      configPath: '/home/ops/.kube/config'
-      // exec: { // TODO: KC
-        // apiVersion: 'client.authentication.k8s.io/v1beta1',
-        // args: ['kubernetes', 'cluster', 'kubeconfig', 'exec-credential', '--version=v1beta1', props?.cluster.cluster.arn || ''],
-        // command: 'doctl'
-      // }
-    })
-
     let secrets = {}
     const decode = (str: string):string => Buffer.from(str, 'base64').toString('binary');
 
@@ -143,7 +132,7 @@ export default class Service extends TerraformStack{
           spec: {
             containers: [{
               //image: `digitalocean/flask-helloworld:latest`, // uncomment to test
-              image: `${this.props.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
+              image: `${this.props?.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
               name: `${this.repo}`,
               env: env,
               ports: [{
