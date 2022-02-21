@@ -32,36 +32,15 @@ async function run() {
       message: 'What is the name of the environment?'
     })
 
-  const { STACK_REPO } = await ux.prompt<{
-    STACK_REPO: string
-  }>({
-      type: 'input',
-      name: 'STACK_REPO',
-      default: 'sample-app',
-      message: 'What is the name of the application repo?'
-    })
-
-  const { STACK_TAG } = await ux.prompt<{
-    STACK_TAG: string
-  }>({
-      type: 'input',
-      name: 'STACK_TAG',
-      default: 'main',
-      message: 'What is the name of the tag or branch?'
-    })
-
   const STACKS:any = {
-    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
+    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
+    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
     'all': [
       `registry-${STACK_TYPE}`,
       `dev-${STACK_TYPE}`, 
       `stg-${STACK_TYPE}`,
-      `prd-${STACK_TYPE}`,
-      `dev-${STACK_REPO}-${STACK_TYPE}`,
-      `stg-${STACK_REPO}-${STACK_TYPE}`,
-      `stg-${STACK_REPO}-${STACK_TYPE}`
+      `prd-${STACK_TYPE}`
     ]
   }
 
@@ -127,9 +106,7 @@ async function run() {
       ...process.env, 
       CDKTF_LOG_LEVEL: 'fatal',
       STACK_ENV: STACK_ENV,
-      STACK_TYPE: STACK_TYPE, 
-      STACK_REPO: STACK_REPO, 
-      STACK_TAG: STACK_TAG
+      STACK_TYPE: STACK_TYPE
     }
   })
   // post processing
@@ -158,16 +135,12 @@ async function run() {
       await exec('kubectl get nodes')
         .catch(err => console.log(err))
 
+      // Lets make sure cluster is authenticated with registry
+      console.log(`\n🔒 Configuring ${ux.colors.white(outputs.cluster.name)} with pull access on ${ux.colors.white(outputs.registry.endpoint)}`)
+      await exec(`doctl registry kubernetes-manifest | kubectl apply -f -`)
+        .catch(err => console.log(err))
+
       const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
-      // If state doesn't exist, lets bootstrap the cluster
-      if(!process.env[CONFIG_KEY]) {
-
-        console.log(`\n🔒 Configuring ${ux.colors.white(outputs.cluster.name)} with pull access on ${ux.colors.white(outputs.registry.endpoint)}`)
-        await exec(`doctl registry kubernetes-manifest | kubectl apply -f -`)
-          .catch(err => console.log(err))
-
-       }
-
       console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
       console.log(outputs)

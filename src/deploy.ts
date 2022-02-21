@@ -1,7 +1,7 @@
 import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
-import { getWorkspaceOutputs } from './helpers/tfc/index'
+import { createWorkspace, getWorkspaceOutputs } from './helpers/tfc/index'
 const pexec = util.promisify(oexec);
 
 async function run() {
@@ -92,6 +92,27 @@ async function run() {
   } catch(e) {
     console.log(`⚠️  Could not boostrap ${ux.colors.white(STACK_ENV)} state. Proceeding with setup...`)
   }
+
+  // sync stacks>workspaces for separated imperative state
+  console.log(`🛠  We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for the ${ux.colors.white(TFC_ORG)} organization...\n`)
+  const errors:any[] = [] 
+  for(const stack of STACKS[STACK_ENV]) {
+    ux.print(`✅ Setting up a ${ux.colors.green(stack)} workspace in Terraform Cloud...`)
+   try {
+      let res = await createWorkspace(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
+    } catch(e) {
+      errors.push(ux.colors.gray(`   - ${ux.colors.green(stack)}: ${e} \n`) as string)
+    }
+  }
+
+  if(errors.length > 0) { // TODO: Improve this to check the error cases
+    console.log(`\n⚠️  ${ux.colors.italic('It appears that Terraform Cloud returned at least one non-200 status for your stack')}`)
+    console.log(`${ux.colors.gray(' - If this your first run & workspaces have not been created you may need to set a TFC_TOKEN secret')}`)
+    console.log(`${ux.colors.gray(' - If this is not your first run & workspaces have been created correctly you can safely ignore this')}`)
+    console.log(`${ux.colors.gray('   Details...')}`)
+    console.log(errors.join(''))
+  }
+
 
   console.log('')
   await ux.print(`📦 Deploying ${ux.colors.white(STACK_REPO)}:${ux.colors.white(STACK_TAG)} to ${ux.colors.white(STACK_ENV)} cluster`)
