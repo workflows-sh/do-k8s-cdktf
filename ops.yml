@@ -79,17 +79,17 @@ pipelines:
           - python
           - wget
           - tar
-        bind:
-          - /path/to/host/repo:/ops/application
-          - /Users/slajax/repos/cto.ai/dev/workflows/sample-app:/ops/application
+        # bind:
+          # - /path/to/host/repo:/ops/application
+          # - /Users/slajax/repos/cto.ai/dev/workflows/sample-react:/ops/application
         steps:
           - wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
           - tar xf ./doctl-1.68.0-linux-amd64.tar.gz
           - ./doctl version
-          # - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
-          # - cd $REPO && ls -asl
-          # - git fetch && git checkout $REF
-          - cd application && ls -asl
+          - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
+          - cd $REPO && ls -asl
+          - git fetch && git checkout $REF
+          # - cd application && ls -asl
           - ../doctl auth init -t $DO_TOKEN
           - ../doctl registry login
           - docker build -f Dockerfile -t registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF .
