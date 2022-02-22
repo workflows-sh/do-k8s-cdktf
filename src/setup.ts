@@ -102,9 +102,10 @@ async function run() {
 
   ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')} for the ${ux.colors.white(TFC_ORG)} organization...`)
   await exec(stacks.join(' && '), {
+    maxBuffer: 10240 * 1024, // todo @kc switch to spawn
     env: { 
       ...process.env, 
-      CDKTF_LOG_LEVEL: 'fatal',
+      CDKTF_LOG_LEVEL: 'debug',
       STACK_ENV: STACK_ENV,
       STACK_TYPE: STACK_TYPE
     }
@@ -168,7 +169,7 @@ async function exec(cmd, env?: any | null) {
     const child = oexec(cmd, env)
     child?.stdout?.pipe(process.stdout)
     child?.stderr?.pipe(process.stderr)
-    child.on('close', (code) => { code ? reject(child.stdout) : resolve(child.stderr) })
+    child.on('exit', (code) => { code ? reject(child.stdout) : resolve(child.stderr) })
   })
 }
 

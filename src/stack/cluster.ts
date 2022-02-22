@@ -60,7 +60,7 @@ export default class Cluster extends TerraformStack{
     //TODO: make dynamic
     const region = 'nyc3'
     const domains = ['tryapp.xyz', '*.tryapp.xyz']
-    const k8ver = '1.21.5-do.0';
+    const k8ver = '1.21.9-do.0';
     const dropletSize = 's-1vcpu-2gb'; 
 
     const vpc = new Vpc(this, `${this.id}-vpc`, {
