@@ -4,7 +4,6 @@
   "projectId": "05c090a8-ae38-4311-89c0-41ecec846456",
   "terraformProviders": [
     "digitalocean/digitalocean@~> 2.0",
-    "hashicorp/kubernetes@~> 2.7.1",
     "gavinbunney/kubectl@~> 1.13.1"
   ],
   "terraformModules": [],
