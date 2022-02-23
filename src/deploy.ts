@@ -133,7 +133,9 @@ async function run() {
           ...process.env,
           CDKTF_LOG_LEVEL: 'fatal',
           STACK_ENV: STACK_ENV,
-          STACK_TYPE: STACK_TYPE
+          STACK_TYPE: STACK_TYPE,
+          STACK_REPO: STACK_REPO,
+          STACK_TAG: STACK_TAG
         }
       }
     }
