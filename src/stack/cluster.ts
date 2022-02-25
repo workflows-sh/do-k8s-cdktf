@@ -47,7 +47,7 @@ export default class Cluster extends TerraformStack{
 
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
-      organization: this.org,
+      organization: process.env.TFC_ORG || this.org,
       workspaces: {
         name: this.id
       }
