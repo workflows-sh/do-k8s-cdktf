@@ -105,7 +105,7 @@ async function run() {
         stdio: 'inherit',
         env: {
           ...process.env,
-          CDKTF_LOG_LEVEL: 'fatal',
+          CDKTF_LOG_LEVEL: 'error',
           STACK_ENV: STACK_ENV,
           STACK_TYPE: STACK_TYPE
         }

@@ -1,7 +1,7 @@
 import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
-import { createWorkspace, getWorkspaceOutputs } from './helpers/tfc/index'
+import { getWorkspaceOutputs } from './helpers/tfc/index'
 const pexec = util.promisify(oexec);
 const spawn = require('spawn-series');
 
@@ -28,14 +28,28 @@ async function run() {
       message: 'What is the name of the environment?'
     })
 
-  const { STACK_REPO } = await ux.prompt<{
-    STACK_REPO: string
+  const { OPERATION } = await ux.prompt<{
+    OPERATION: string,
   }>({
+      type: 'list',
+      name: 'OPERATION',
+      default: 'service',
+      choices: ['cluster', 'service'],
+      message: 'Do you want to destroy cluster or a service?'
+    })
+
+  let STACK_REPO = 'cluster'
+
+  if(OPERATION === 'service') {
+    ({ STACK_REPO } = await ux.prompt<{
+      STACK_REPO: string
+    }>({
       type: 'input',
       name: 'STACK_REPO',
       default: 'sample-app',
-      message: 'What is the name of the application repo you want to destroy?'
-    })
+      message: 'What is the name of the application repo?'
+    }))
+  }
 
   function delay(ms: number) {
     return new Promise( resolve => setTimeout(resolve, ms) );
@@ -60,22 +74,16 @@ async function run() {
     process.exit(1)
   }
 
-
   const STACKS:any = {
-    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
+    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
+    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
     'all': [
       `registry-${STACK_TYPE}`,
 
       `dev-${STACK_TYPE}`, 
       `stg-${STACK_TYPE}`,
       `prd-${STACK_TYPE}`,
-
-      `dev-${STACK_REPO}-${STACK_TYPE}`,
-      `stg-${STACK_REPO}-${STACK_TYPE}`,
-      `prd-${STACK_REPO}-${STACK_TYPE}`
-
     ]
   }
 
@@ -83,13 +91,46 @@ async function run() {
     return console.log('Please try again with environment set to <dev|stg|prd|all>')
   }
 
+  try {
+    console.log(`\n🛰  Attempting to bootstrap ${ux.colors.white(STACK_ENV)} state...`)
+    const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
+    const STATE_KEY = `${PREFIX}_STATE`
+    const STATE = process.env[`${STATE_KEY}`]
+
+    const outputs = JSON.parse(STATE || '')
+    // make sure doctl config is setup for the ephemeral state
+    console.log(`\n🔐 Configuring access to ${ux.colors.white(STACK_ENV)} cluster`)
+    await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
+      .catch(err => { throw err })
+
+    // populate our kubeconfig from doctl into the container
+    await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+      .then((out) => console.log(out.stdout))
+      .catch(err => { throw err })
+
+    // confirm we can connect to the cluster to see nodes
+    console.log(`\n⚡️ Confirming connection to ${ux.colors.white(outputs.cluster.name)}:`)
+    await pexec('kubectl get nodes')
+      .then((out) => console.log(out.stdout))
+      .catch(err => console.log(err))
+
+  } catch(e) {
+    console.log(`⚠️  Could not boostrap ${ux.colors.white(STACK_ENV)} state. Proceeding with setup...`)
+  }
+
+
+  if(OPERATION === "service") {
+    let service = `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`
+    STACKS[STACK_ENV] = [service]
+  }
+
   // destroy in reverse order
   STACKS[STACK_ENV].reverse()
 
   console.log('')
   await ux.print(`🗑  Attempting to destroy the following stacks: ${ux.colors.white(STACKS[STACK_ENV].join(' '))}`)
-  await ux.print(`📝 ${ux.colors.green('FYI:')} There may be stack resources that must be manually deleted (s3, ECR) or stack dependencies (ECS may have other running services).`)
-  await ux.print(`👉 ${ux.colors.green('So...')} This may require you to go to the AWS Console to delete these resources and re-run this workflow once per service to fully destroy the stack.`)
+  await ux.print(`📝 ${ux.colors.green('FYI:')} There may be stack resources that must be manually deleted or stack dependencies.`)
+  await ux.print(`👉 ${ux.colors.green('So...')} This may require you to go to the DO Console to delete these resources and re-run this workflow once per service to fully destroy the stack.`)
   console.log('')
 
   // then we build a command to deploy each stack
@@ -112,6 +153,11 @@ async function run() {
 
   // deploy stack in synchronous series
   exec(stacks).then(async () => {  
+
+    if(OPERATION==='service') {
+      await ux.print('✅ Complete')
+      return;
+    }
 
     let url = `https://app.terraform.io/app/${TFC_ORG}/workspaces/`
     console.log(`✅ View state in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)

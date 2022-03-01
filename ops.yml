@@ -81,7 +81,7 @@ pipelines:
         - STACK_TYPE=do-k8s
         - ORG=cto-ai
         - REPO=sample-app
-        - REF=dev
+        - REF=main
       secrets:
         - GITHUB_TOKEN
         - DO_TOKEN
