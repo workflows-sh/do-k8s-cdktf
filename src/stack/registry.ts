@@ -37,6 +37,18 @@ export default class Registry extends TerraformStack{
       token: process.env.DO_TOKEN 
     })
 
+    new RemoteBackend(this, {
+      hostname: 'app.terraform.io',
+      organization: process.env.TFC_ORG || this.org,
+      workspaces: {
+        name: this.id
+      }
+    })
+
+  }
+
+  async initialize() {
+
     const registry = new ContainerRegistry(this, `${this.id}-registry`, {
       name: `${this.org}`,
       subscriptionTierSlug: 'basic'
@@ -48,12 +60,5 @@ export default class Registry extends TerraformStack{
       value: this.registry
     })
 
-    new RemoteBackend(this, {
-      hostname: 'app.terraform.io',
-      organization: this.org,
-      workspaces: {
-        name: this.id
-      }
-    })
   }
 }

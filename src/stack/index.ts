@@ -28,6 +28,9 @@ export class Stack {
     this.repo = props?.repo ?? 'sample-app'
     this.tag = props?.tag ?? 'main'
     this.entropy = props?.entropy ?? '01012022'
+  }
+
+  async initialize() {
 
     const app = new App();
 
@@ -38,6 +41,7 @@ export class Stack {
       repo: this.repo,
       entropy: this.entropy
     })
+    await registry.initialize()
 
     // create each vpc, cluster & db
     const cluster = new Cluster(app, `dev-${this.key}`, {
@@ -48,6 +52,7 @@ export class Stack {
       tag: this.tag,
       entropy: this.entropy
     })
+    await cluster.initialize()
 
     const service = new Service(app, `dev-${this.repo}-${this.key}`, {
       org: this.org,
@@ -55,8 +60,11 @@ export class Stack {
       key: this.key,
       repo: this.repo,
       tag: this.tag,
-      entropy: this.entropy
+      entropy: this.entropy,
+      registry: registry,
+      cluster: cluster,
     })
+    await service.initialize()
 
     app.synth()
 

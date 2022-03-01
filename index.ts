@@ -9,7 +9,7 @@ const STACK_ENTROPY = process.env.STACK_ENTROPY || '01012022'
 
 async function run() {
 
-  new Stack({
+  const stack = new Stack({
     org: STACK_ORG,
     env: STACK_ENV,
     repo: STACK_REPO,
@@ -17,6 +17,8 @@ async function run() {
     key: STACK_TYPE,
     entropy: STACK_ENTROPY
   });
+
+  stack.initialize()
 
 }
 

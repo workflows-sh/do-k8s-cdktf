@@ -4,7 +4,7 @@
 FROM registry.cto.ai/official_images/node:2-12.13.1-stretch-slim
 RUN mkdir -p /usr/local/nvm
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 12.16.0
+ENV NODE_VERSION 14.18.3
 
 RUN apt-get update && \
     apt-get install -y \
@@ -43,13 +43,15 @@ USER ops
 WORKDIR /ops
 
 ADD --chown=ops:9999 package.json .
+ADD --chown=ops:9999 package-lock.json .
 RUN npm install --loglevel=error
 
 ADD --chown=ops:9999 . .
 
-RUN npm run get
+# RUN npm run get
 
 RUN mkdir cdktf.out && chown ops:9999 cdktf.out
 ADD --chown=ops:9999 ./credentials.tfrc.json /home/ops/.terraform.d/credentials.tfrc.json
+ADD --chown=ops:9999 ./.terraform.d /home/ops/.terraform.d
 
 RUN mkdir /home/ops/.kube && touch /home/ops/.kube/config
