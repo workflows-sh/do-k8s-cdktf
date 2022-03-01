@@ -59,7 +59,6 @@ export default class Cluster extends TerraformStack{
 
     //TODO: make dynamic
     const region = 'nyc3'
-    const domains = ['tryapp.xyz', '*.tryapp.xyz']
     const k8ver = '1.21.9-do.0';
     const dropletSize = 's-1vcpu-2gb'; 
 
@@ -104,31 +103,13 @@ export default class Cluster extends TerraformStack{
       name: `${this.id}`
     })
 
-    const bucket = new SpacesBucket(this, `${this.id}-bucket`,{
-      name: `${this.env}-bucket-${this.org}-${this.entropy}`,
-      region: region,
-      acl: 'private'
-    })
-
-    const stackCert = new Certificate(this, `${this.id}-cert`,{
-      name: `${this.key}-ssl-${this.org}-${this.entropy}`,
-      type: 'lets_encrypt',
-      domains: domains
-    })
-
-    new Cdn(this, `${this.id}-cdn`, {
-      origin:  bucket.bucketDomainName,
-      certificateName: stackCert.name
-    })
-
     new ProjectResources(this, `${this.id}-resources`, {
       project: project.id,
       resources: [
-        bucket.urn,
         cluster.urn,
         db.urn
       ],
-      dependsOn: [ project, bucket, cluster, db ]
+      dependsOn: [ project, cluster, db ]
     })
 
     this.vpc = vpc
