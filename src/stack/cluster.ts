@@ -66,10 +66,6 @@ export default class Cluster extends TerraformStack{
       name: `${this.env}-vpc-${this.org}-${this.entropy}`,
       region: region
     })
-  
-    const project = new Project(this, `${this.id}-project`, {
-      name: `${this.env}`
-    })
 
     const cluster = new KubernetesCluster(this, `${this.id}-k8s`, {
       name: `${this.env}-k8s-${this.org}-${this.entropy}`,
@@ -103,11 +99,17 @@ export default class Cluster extends TerraformStack{
       name: `${this.id}`
     })
 
+    const project = new Project(this, `${this.id}-project`, {
+      name: `${this.env}`,
+      dependsOn:[vpc, cluster, db]
+    })
+
     new ProjectResources(this, `${this.id}-resources`, {
       project: project.id,
       resources: [
+        vpc.urn,
         cluster.urn,
-        db.urn
+        db.urn,
       ],
       dependsOn: [ project, cluster, db ]
     })

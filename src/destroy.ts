@@ -155,7 +155,9 @@ async function run() {
   exec(stacks).then(async () => {  
 
     if(OPERATION === 'service') {
+      console.log('')
       await ux.print(`✅ Completed destroy of ${ux.colors.red(STACK_REPO)} in ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
+      console.log('')
       return;
     }
 
