@@ -51,17 +51,14 @@ async function run() {
     })
 
   const STACKS:any = {
-    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`, `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+    'dev': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+    'stg': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+    'prd': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
     'all': [
       `registry-${STACK_TYPE}`,
       `dev-${STACK_TYPE}`, 
       `stg-${STACK_TYPE}`,
-      `prd-${STACK_TYPE}`,
-      `dev-${STACK_REPO}-${STACK_TYPE}`,
-      `stg-${STACK_REPO}-${STACK_TYPE}`,
-      `stg-${STACK_REPO}-${STACK_TYPE}`
+      `prd-${STACK_TYPE}`
     ]
   }
 
@@ -140,28 +137,13 @@ async function run() {
 
   // deploy stack in synchronous series
   exec(stacks).then(async () => {
-    let url = `https://app.terraform.io/app/${TFC_ORG}/workspaces/`
-    console.log(`✅ View state in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
 
      try {
 
-      console.log(`\n🔒 Syncing infrastructure state with ${ux.colors.white(STACK_TEAM)} team...`)
-
-      // get workspace outputs
-      const outputs:any = {}
-      await Promise.all(STACKS[STACK_ENV].map(async (stack) => {
-        let output = await getWorkspaceOutputs(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
-        Object.assign(outputs, output)
-      }))
-
-      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
-      // If state doesn't exist, lets bootstrap the cluster
-      console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
-      await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
-      console.log(outputs)
-
-      console.log('\n✅ Deployed. Load Balancer may take some time to provision on your first deploy.')
-      console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or Lens for status & IP.`)
+      let url = `https://app.terraform.io/app/${TFC_ORG}/workspaces/`
+      console.log('✅ Deployed. Load Balancer may take some time to provision on your first deploy.')
+      console.log(`✅ View state in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
+      console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or ${ux.colors.white('Lens.app')} for status & IP.`)
       console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)
 
     } catch (e) {
