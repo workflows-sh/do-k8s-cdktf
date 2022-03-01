@@ -2,7 +2,7 @@ import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
-import { Project, ProjectResources, Vpc, KubernetesCluster, SpacesBucket, Certificate, Droplet, Loadbalancer, Cdn, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
+import { Project, ProjectResources, Vpc, KubernetesCluster, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
 interface StackProps {
   org: string

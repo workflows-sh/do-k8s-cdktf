@@ -34,7 +34,7 @@ async function run() {
       type: 'list',
       name: 'OPERATION',
       default: 'service',
-      choices: ['cluster', 'service'],
+      choices: ['service', 'cluster'],
       message: 'Do you want to destroy cluster or a service?'
     })
 
@@ -154,8 +154,8 @@ async function run() {
   // deploy stack in synchronous series
   exec(stacks).then(async () => {  
 
-    if(OPERATION==='service') {
-      await ux.print('✅ Complete')
+    if(OPERATION === 'service') {
+      await ux.print(`✅ Completed destroy of ${ux.colors.red(STACK_REPO)} in ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
       return;
     }
 
@@ -174,9 +174,10 @@ async function run() {
       }))
 
       const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
-      console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
+      console.log(`\n✅ Cleared the state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
-      console.log(outputs)
+
+      await ux.print(`✅ Completed destroy of ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
 
     } catch (e) {
       console.log('There was an error updating workflow state', e)

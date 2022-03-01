@@ -167,11 +167,13 @@ export default class Service extends TerraformStack{
     };
 
     new Manifest(this, `${this.id}-deployment-manifest`, {
+      wait: true,
       yamlBody: YAML.stringify(dYaml),
       waitForRollout: true
     })
 
     new Manifest(this, `${this.id}-service-manifest`, {
+      wait: true,
       yamlBody: YAML.stringify(sYaml),
       waitForRollout: true
     })

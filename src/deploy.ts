@@ -160,8 +160,8 @@ async function run() {
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
       console.log(outputs)
 
-      console.log('\n✅ Deployed. Load Balancer is provisioning...')
-      console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or Lens for status.`)
+      console.log('\n✅ Deployed. Load Balancer may take some time to provision on your first deploy.')
+      console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or Lens for status & IP.`)
       console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)
 
     } catch (e) {
