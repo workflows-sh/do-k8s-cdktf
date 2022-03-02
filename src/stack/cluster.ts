@@ -91,12 +91,13 @@ export default class Cluster extends TerraformStack{
 
     new DatabaseUser(this, `${this.id}-db-user`, {
       clusterId: `${db.id}`,
-      name: `root`
+      name: `root`,
     })
 
     new DatabaseDb(this, `${this.id}-db`, {
       clusterId: `${db.id}`,
       name: `${this.id}`
+      // need to add ENV var for DB Pass
     })
 
     const project = new Project(this, `${this.id}-project`, {
@@ -107,7 +108,6 @@ export default class Cluster extends TerraformStack{
     new ProjectResources(this, `${this.id}-resources`, {
       project: project.id,
       resources: [
-        vpc.urn,
         cluster.urn,
         db.urn,
       ],

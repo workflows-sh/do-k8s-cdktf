@@ -129,8 +129,8 @@ async function run() {
 
   console.log('')
   await ux.print(`🗑  Attempting to destroy the following stacks: ${ux.colors.white(STACKS[STACK_ENV].join(' '))}`)
-  await ux.print(`📝 ${ux.colors.green('FYI:')} There may be stack resources that must be manually deleted or stack dependencies.`)
-  await ux.print(`👉 ${ux.colors.green('So...')} This may require you to go to the DO Console to delete these resources and re-run this workflow once per service to fully destroy the stack.`)
+  await ux.print(`📝 ${ux.colors.green('FYI:')} There may be stack resources that must be manually deleted.`)
+  await ux.print(`👉 ${ux.colors.green('So...')} If this destroy fails, you may have to clean up resources manuallyi & run again.`)
   console.log('')
 
   // then we build a command to deploy each stack
@@ -176,10 +176,10 @@ async function run() {
       }))
 
       const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
-      console.log(`\n✅ Cleared the state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
+      await ux.print(`\n✅ Cleared the state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
-
       await ux.print(`✅ Completed destroy of ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
+      console.log('')
 
     } catch (e) {
       console.log('There was an error updating workflow state', e)
