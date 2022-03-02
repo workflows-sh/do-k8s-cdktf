@@ -27,4 +27,11 @@ $ cd do-k8s
 
 3. Do your best to have [well-formatted commit messages](https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html) for each change. This provides consistency throughout the project, and ensures that commit messages are able to be formatted properly by various git tools.
 
+4. Finally, push the commits to your fork and submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)
 
+
+## Once you've filed the PR:
+
+- One or more maintainers will use GitHub's review feature to review your PR.
+- If the maintainer asks for any changes, edit your changes, push, and ask for another review.
+- If the maintainer decides to suggest some improvements or alternatives, modify and make improvements. Once your changes are approved, one of the project maintainers will merge them.
