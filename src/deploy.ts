@@ -146,13 +146,42 @@ async function run() {
       console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or ${ux.colors.white('Lens.app')} for status & IP.`)
       console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)
 
+      sdk.track([], {
+        event_name: 'deployment',
+        event_action: 'succeeded',
+        environment: STACK_ENV,
+        repo: STACK_REPO,
+        branch: STACK_TAG,
+        commit: STACK_TAG,
+        image: `${STACK_REPO}:${STACK_TAG}`
+      })
+
+
     } catch (e) {
+      sdk.track([], {
+        event_name: 'deployment',
+        event_action: 'failed',
+        environment: STACK_ENV,
+        repo: STACK_REPO,
+        branch: STACK_TAG,
+        commit: STACK_TAG,
+        image: `${STACK_REPO}:${STACK_TAG}`
+      })
       console.log('There was an error updating workflow state', e)
       process.exit(1)
     }
 
   })
   .catch(e => {
+    sdk.track([], {
+      event_name: 'deployment',
+      event_action: 'failed',
+      environment: STACK_ENV,
+      repo: STACK_REPO,
+      branch: STACK_TAG,
+      commit: STACK_TAG,
+      image: `${STACK_REPO}:${STACK_TAG}`
+    })
     console.log('There was an error deploying the infrastructure.')
     process.exit(1)
   })
