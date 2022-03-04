@@ -2,7 +2,6 @@
 
 This project accepts contributions. In order to contribute, you should pay attention to a few guidelines:
 
-
 ## Reporting Issues
 
 Bugs, feature requests, and development-related questions should be directed to our [GitHub issue tracker](https://github.com/workflows-sh/do-k8s/issues)
