@@ -81,6 +81,8 @@ async function create() {
     const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
     const STATE_KEY = `${PREFIX}_STATE`
     const STATE = process.env[`${STATE_KEY}`]
+    var SECRET_KEY : string
+    var SECRET_VAL : string
 
     if(!STATE) {
       console.log('')
@@ -90,12 +92,39 @@ async function create() {
       process.exit()
     }
 
+    if (typeof OPTIONS.k !== 'undefined' && typeof OPTIONS.v !== 'undefined' ) {
+      SECRET_KEY = OPTIONS.k
+      SECRET_VAL = OPTIONS.v
+    }
+    else
+    {
+      const { sk } = await ux.prompt<{
+        sk: string;
+      }>({
+        type: 'input',
+        name: 'sk',
+        message: 'What is the key for the secret?',
+        allowEmpty: false,
+      });
+      SECRET_KEY = sk
+
+      const { sv } = await ux.prompt<{
+        sv: string;
+      }>({
+        type: 'input',
+        name: 'sv',
+        message: 'What is the value for the secret?',
+        allowEmpty: false,
+      });
+      SECRET_VAL = sv
+    }  
+
     const { confirmation } = await ux.prompt<{
       confirmation: boolean
     }>({
       type: 'confirm',
       name: 'confirmation',
-      message: `Are you sure you want to set ${OPTIONS.k} to ${OPTIONS.v} in the ${VAULT_KEY}?`
+      message: `Are you sure you want to set ${SECRET_KEY} to ${SECRET_VAL} in the ${VAULT_KEY}?`
     })
 
     if(!confirmation) {
@@ -122,15 +151,15 @@ async function create() {
     const encode = (str: string):string => Buffer.from(str, 'binary').toString('base64');
     const data = JSON.parse(vault.stdout); 
 
-    console.log(`\n🔐 Setting ${OPTIONS.k} to ${OPTIONS.v} on the ${VAULT_KEY} with type ${typeof OPTIONS.v}`)
-    data.data[OPTIONS.k] = encode(OPTIONS.v.toString())
+    console.log(`\n🔐 Setting ${SECRET_KEY} to ${SECRET_VAL} on the ${VAULT_KEY} with type ${typeof SECRET_VAL}`)
+    data.data[SECRET_KEY] = encode(SECRET_VAL.toString())
 
     // not sure why but k8s breaks annotations json with \n
     // so delete last applied annotations before applying
     delete data?.metadata?.annotations
     const payload = JSON.stringify(data)
     await pexec(`echo '${payload}' | kubectl apply -f -`) 
-    console.log(`✅ ${OPTIONS.k} set to ${OPTIONS.v} in the ${VAULT_KEY} vault\n`)
+    console.log(`✅ ${SECRET_KEY} set to ${SECRET_VAL} in the ${VAULT_KEY} vault\n`)
     
   } catch (e) {
     console.log('there was an error:', e)
@@ -220,6 +249,7 @@ async function remove() {
     const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
     const STATE_KEY = `${PREFIX}_STATE`
     const STATE = process.env[`${STATE_KEY}`]
+    var SECRET_KEY : string
 
     if(!STATE) {
       console.log('')
@@ -229,12 +259,28 @@ async function remove() {
       process.exit()
     }
 
+    if (typeof OPTIONS.k !== 'undefined' ) {
+      SECRET_KEY = OPTIONS.k
+    }
+    else
+    {
+      const { sk } = await ux.prompt<{
+        sk: string;
+      }>({
+        type: 'input',
+        name: 'sk',
+        message: 'What is the key for the secret?',
+        allowEmpty: false,
+      });
+      SECRET_KEY = sk
+    }  
+
     const { confirmation } = await ux.prompt<{
       confirmation: boolean
     }>({
       type: 'confirm',
       name: 'confirmation',
-      message: `Are you sure you want to remove ${OPTIONS.k} from the ${VAULT_KEY} vault?`
+      message: `Are you sure you want to remove ${SECRET_KEY} from the ${VAULT_KEY} vault?`
     })
 
     if(!confirmation) {
@@ -261,16 +307,16 @@ async function remove() {
     const encode = (str: string):string => Buffer.from(str, 'binary').toString('base64');
     const data = JSON.parse(vault.stdout); 
 
-    console.log(`\n🔐 Deleting ${OPTIONS.k} from the ${VAULT_KEY} vault`)
+    console.log(`\n🔐 Deleting ${SECRET_KEY} from the ${VAULT_KEY} vault`)
 
     // not sure why but k8s breaks annotations json with \n
     // so delete last applied annotations before applying
     delete data?.metadata?.annotations
-    delete data.data[OPTIONS.k]
+    delete data.data[SECRET_KEY]
 
     const payload = JSON.stringify(data)
     await pexec(`echo '${payload}' | kubectl apply -f -`) 
-    console.log(`✅ ${OPTIONS.k} removed from the ${VAULT_KEY} vault\n`)
+    console.log(`✅ ${SECRET_KEY} removed from the ${VAULT_KEY} vault\n`)
 
   } catch (e) {
     console.log('there was an error:')
