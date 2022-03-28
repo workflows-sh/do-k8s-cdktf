@@ -20,6 +20,9 @@ async function run() {
   const TFC_ORG = process.env.TFC_ORG || ''
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
+  const defaultServicesConfig = '{ "sample-app": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
+  var servicesConfig: string;
+  
 
   await ux.print(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
 
@@ -32,14 +35,37 @@ async function run() {
       message: 'What is the name of the environment?'
     })
 
+  switch(STACK_ENV) { 
+    case 'dev': { 
+      servicesConfig = process.env.DO_DEV_SERVICES || defaultServicesConfig;
+      break; 
+    } 
+    case 'stg': { 
+      servicesConfig = process.env.DO_STG_SERVICES || defaultServicesConfig;
+      break; 
+    }
+    case 'prd': { 
+      servicesConfig = process.env.DO_PRD_SERVICES || defaultServicesConfig;
+      break; 
+    } 
+    default: { 
+      servicesConfig = defaultServicesConfig;
+      break; 
+    } 
+  }
+  
+  const jsonServicesConfig = JSON.parse(servicesConfig);
+  const servicesList = Object.keys(jsonServicesConfig);
+  
   const { STACK_REPO } = await ux.prompt<{
     STACK_REPO: string
   }>({
-      type: 'input',
+      type: 'list',
       name: 'STACK_REPO',
-      default: 'sample-app',
+      choices: servicesList,
       message: 'What is the name of the application repo?'
     })
+
 
   const { STACK_TAG } = await ux.prompt<{
     STACK_TAG: string
@@ -129,7 +155,7 @@ async function run() {
           STACK_ENV: STACK_ENV,
           STACK_TYPE: STACK_TYPE,
           STACK_REPO: STACK_REPO,
-          STACK_TAG: STACK_TAG
+          STACK_TAG: STACK_TAG,
         }
       }
     }

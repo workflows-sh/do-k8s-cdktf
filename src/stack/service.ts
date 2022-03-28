@@ -106,27 +106,55 @@ export default class Service extends TerraformStack{
     const env = Object.keys(environment).map((e) => {
       return { name: e, value: environment[e] }
     })
+
+    const defaultServicesConfig = '{ "sample-app": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
+    var servicesConfig: string;
+
+    switch(this.env) { 
+      case 'dev': { 
+        servicesConfig = process.env.DO_DEV_SERVICES || defaultServicesConfig;
+        break; 
+      } 
+      case 'stg': { 
+        servicesConfig = process.env.DO_STG_SERVICES || defaultServicesConfig;
+        break; 
+      }
+      case 'prd': { 
+        servicesConfig = process.env.DO_PRD_SERVICES || defaultServicesConfig;
+        break; 
+      } 
+      default: { 
+        servicesConfig = defaultServicesConfig;
+        break; 
+      } 
+    }
+
+    const jsonServicesConfig = JSON.parse(servicesConfig);
+    const serviceConfig = jsonServicesConfig[`${this.repo}`]
      
     const dYaml = {
       apiVersion: 'apps/v1',
       kind: 'Deployment',
       metadata: {
-        name: `${this.repo}`,
+        name: `${this.env}-${this.repo}`,
         labels: {
-          'app.kubernetes.io/name': `load-balancer-${this.repo}`
+          'service': `srv-${this.repo}`,
+          'env': `${this.env}`
         },
       },
       spec: {
-        replicas: 2,
+        replicas: serviceConfig['replicas'],
         selector: {
           matchLabels: {
-            'app.kubernetes.io/name': `load-balancer-${this.repo}`
+            'service': `srv-${this.repo}`,
+            'env': `${this.env}`
           }
         },
         template: {
           metadata: {
             labels: {
-              'app.kubernetes.io/name': `load-balancer-${this.repo}`
+              'service': `srv-${this.repo}`,
+              'env': `${this.env}`
             },
           },
           spec: {
@@ -135,33 +163,32 @@ export default class Service extends TerraformStack{
               image: `${this.props?.registry.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
               name: `${this.repo}`,
               env: env,
-              ports: [{
-                containerPort: convert(environment.PORT) || 3000
-              }]
+              ports: serviceConfig['ports']
             }]
           }
         }
       }
     };
 
-    const sYaml = {
+    const lbYaml = {
       apiVersion: 'v1',
       kind: 'Service',
+      annotations: {
+        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
+      },
       metadata: {
-        name: `${this.repo}-service`,
+        name: `${this.env}-lb-${this.repo}`,
         labels: {
-          'app.kubernetes.io/name': `load-balancer-${this.repo}`
+          'service': `srv-${this.repo}`,
+          'env': `${this.env}`
         }
       },
       spec: {
         selector: {
-          'app.kubernetes.io/name': `load-balancer-${this.repo}`
+          'service': `srv-${this.repo}`,
+          'env': `${this.env}`
         },
-        ports: [{
-          'protocol': 'TCP',
-          'port': 80,
-          'targetPort': convert(environment.PORT) || 3000
-        }],
+        ports: serviceConfig['lb_ports'],
         type: 'LoadBalancer'
       }
     };
@@ -174,7 +201,7 @@ export default class Service extends TerraformStack{
 
     new Manifest(this, `${this.id}-service-manifest`, {
       wait: true,
-      yamlBody: YAML.stringify(sYaml),
+      yamlBody: YAML.stringify(lbYaml),
       waitForRollout: true
     })
 

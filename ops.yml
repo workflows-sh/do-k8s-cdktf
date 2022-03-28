@@ -17,6 +17,9 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
+        - DO_DEV_K8S_CONFIG
+        - DO_STG_K8S_CONFIG
+        - DO_PRD_K8S_CONFIG
   - name: deploy:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/deploy.ts
     description: "Deploy a service to Kubernetes infrastructure on DigitalOcean"
@@ -34,6 +37,9 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
+        - DO_DEV_SERVICES
+        - DO_STG_SERVICES
+        - DO_PRD_SERVICES
   - name: destroy:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/destroy.ts
     description: "Destroy resources in your Kubernetes infrastructure on DigitalOcean"
@@ -51,6 +57,9 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
+        - DO_DEV_K8S_CONFIG
+        - DO_STG_K8S_CONFIG
+        - DO_PRD_K8S_CONFIG
   - name: vault:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/vault.ts
     description: "manage secrets vault"
@@ -111,4 +120,3 @@ pipelines:
           - ../doctl registry login
           - docker build -f Dockerfile -t registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF .
           - docker push registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF
-

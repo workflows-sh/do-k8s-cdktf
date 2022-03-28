@@ -17,6 +17,7 @@ export default class Cluster extends TerraformStack{
   public vpc: Vpc
   public cluster: KubernetesCluster
   public db: DatabaseCluster
+  public redis: DatabaseCluster
 
   public readonly props: StackProps | undefined
   public readonly id: string | undefined
@@ -58,9 +59,48 @@ export default class Cluster extends TerraformStack{
   async initialize() {
 
     //TODO: make dynamic
-    const region = 'nyc3'
-    const k8ver = '1.21.9-do.0';
-    const dropletSize = 's-1vcpu-2gb'; 
+    const region = 'nyc3';
+    const k8ver = '1.22.7-do.0';
+    const defaultK8sConfig = '{ "dropletSize": "s-1vcpu-2gb", "nodeCount": 3, "minNodes": 1, "maxNodes": 5, "autoScale": true }';
+    const defaultRedisConfig = '{ "dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "6" }';
+    var k8sConfig: string;
+    var redisConfig: string;
+    
+    switch(this.env) { 
+      case 'dev': { 
+        k8sConfig = process.env.DO_DEV_K8S_CONFIG || defaultK8sConfig;
+        redisConfig = process.env.DO_DEV_REDIS_CONFIG || defaultRedisConfig;
+        break; 
+      } 
+      case 'stg': { 
+        k8sConfig = process.env.DO_STG_K8S_CONFIG || defaultK8sConfig;
+        redisConfig = process.env.DO_STG_REDIS_CONFIG || defaultRedisConfig;
+        break; 
+      }
+      case 'prd': { 
+        k8sConfig = process.env.DO_PRD_K8S_CONFIG || defaultK8sConfig;
+        redisConfig = process.env.DO_PRD_REDIS_CONFIG || defaultRedisConfig;
+        break; 
+      } 
+      default: { 
+        k8sConfig = defaultK8sConfig;
+        redisConfig = defaultRedisConfig;
+        break; 
+      } 
+    }
+    const jsonK8sConfig = JSON.parse(k8sConfig);
+    const jsonRedisConfig = JSON.parse(redisConfig);
+
+    const dropletSize = jsonK8sConfig.dropletSize;
+    const nodeCount = jsonK8sConfig.nodeCount;
+    const minNodes = jsonK8sConfig.minNodes;
+    const maxNodes = jsonK8sConfig.maxNodes;
+    const autoScale = jsonK8sConfig.autoScale;
+
+    const redisDropletSize = jsonRedisConfig.dropletSize;
+    const redisNodeCount = jsonRedisConfig.nodeCount;
+    const redisVersion = jsonRedisConfig.version;
+
 
     const vpc = new Vpc(this, `${this.id}-vpc`, {
       name: `${this.env}-vpc-${this.org}-${this.entropy}`,
@@ -74,9 +114,10 @@ export default class Cluster extends TerraformStack{
       nodePool: {
         name: `${this.id}-k8s-node-${this.org}-${this.entropy}`,
         size: dropletSize,
-        nodeCount: 3,
-        minNodes: 1,
-        maxNodes: 5
+        nodeCount: nodeCount,
+        minNodes: minNodes,
+        maxNodes: maxNodes,
+        autoScale: autoScale
       },
     });
 
@@ -100,9 +141,18 @@ export default class Cluster extends TerraformStack{
       // need to add ENV var for DB Pass
     })
 
+    const redis = new DatabaseCluster(this, `${this.id}-redis`, {
+      name: `${this.env}-redis-${this.org}-${this.entropy}`,
+      engine: 'redis',
+      version: redisVersion,
+      size: redisDropletSize,
+      region: region,
+      nodeCount: redisNodeCount
+    })
+
     const project = new Project(this, `${this.id}-project`, {
       name: `${this.env}`,
-      dependsOn:[vpc, cluster, db]
+      dependsOn:[vpc, cluster, db, redis]
     })
 
     new ProjectResources(this, `${this.id}-resources`, {
@@ -110,6 +160,7 @@ export default class Cluster extends TerraformStack{
       resources: [
         cluster.urn,
         db.urn,
+        redis.urn,
       ],
       dependsOn: [ project, cluster, db ]
     })
@@ -117,6 +168,7 @@ export default class Cluster extends TerraformStack{
     this.vpc = vpc
     this.cluster = cluster
     this.db = db
+    this.redis = redis
 
     new TerraformOutput(this, 'vpc', {
       value: {
@@ -139,6 +191,15 @@ export default class Cluster extends TerraformStack{
         host: this.db.host,
         user: this.db.user,
         urn: this.db.urn
+      }
+    })
+
+    new TerraformOutput(this, 'redis', {
+      value: {
+        name: this.redis.name,
+        host: this.redis.host,
+        user: this.redis.user,
+        urn: this.redis.urn
       }
     })
 
