@@ -1,7 +1,7 @@
 import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
-import { createWorkspace, getWorkspaceOutputs } from './helpers/tfc/index'
+import { getWorkspaceOutputs } from './helpers/tfc/index'
 const pexec = util.promisify(oexec);
 const spawn = require('spawn-series');
 
@@ -13,15 +13,11 @@ async function run() {
   await pexec(`sed -i 's/{{token}}/${process.env.TFC_TOKEN}/g' ${tfrc}`)
     .catch(e => console.log(e))
 
-  // make sure doctl config is setup for the ephemeral state
-  await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
-    .catch(err => console.log(err))
-
   const TFC_ORG = process.env.TFC_ORG || ''
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
-  await ux.print(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
+  sdk.log(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
 
   const { STACK_ENV } = await ux.prompt<{
     STACK_ENV: string
@@ -32,33 +28,62 @@ async function run() {
       message: 'What is the name of the environment?'
     })
 
-  const { STACK_REPO } = await ux.prompt<{
-    STACK_REPO: string
+  const { OPERATION } = await ux.prompt<{
+    OPERATION: string,
   }>({
+      type: 'list',
+      name: 'OPERATION',
+      default: 'service',
+      choices: ['service', 'cluster'],
+      message: 'Do you want to destroy cluster or a service?'
+    })
+
+  let STACK_REPO = 'cluster'
+
+  if(OPERATION === 'service') {
+    ({ STACK_REPO } = await ux.prompt<{
+      STACK_REPO: string
+    }>({
       type: 'input',
       name: 'STACK_REPO',
       default: 'sample-app',
       message: 'What is the name of the application repo?'
+    }))
+  }
+
+  function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+  }
+  console.log('')
+  await ux.spinner.start(`🗑  Collecting resources...`)
+  await delay(2000); // give user 2 seconds to think about it
+  await ux.spinner.stop(`🗑  Collecting resources...    ✅`)
+  console.log('')
+
+  const { CONFIRM } = await ux.prompt<{
+    CONFIRM: boolean
+  }>({
+      type: 'confirm',
+      name: 'CONFIRM',
+      default: false,
+      message: `Are you sure that you want to destroy the ${STACK_REPO} in ${STACK_ENV}?`
     })
 
-  const { STACK_TAG } = await ux.prompt<{
-    STACK_TAG: string
-  }>({
-      type: 'input',
-      name: 'STACK_TAG',
-      default: 'main',
-      message: 'What is the name of the tag or branch?'
-    })
+  if(!CONFIRM){
+    await ux.print(`\n⚠️  Destroy was not confirmed. Exiting.\n`)
+    process.exit(1)
+  }
 
   const STACKS:any = {
-    'dev': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'stg': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'prd': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
+    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
+    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
     'all': [
       `registry-${STACK_TYPE}`,
+
       `dev-${STACK_TYPE}`, 
       `stg-${STACK_TYPE}`,
-      `prd-${STACK_TYPE}`
+      `prd-${STACK_TYPE}`,
     ]
   }
 
@@ -76,113 +101,93 @@ async function run() {
     // make sure doctl config is setup for the ephemeral state
     console.log(`\n🔐 Configuring access to ${ux.colors.white(STACK_ENV)} cluster`)
     await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
-      .catch(err => console.log(err))
+      .catch(err => { throw err })
 
     // populate our kubeconfig from doctl into the container
     await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+      .then((out) => console.log(out.stdout))
       .catch(err => { throw err })
 
     // confirm we can connect to the cluster to see nodes
     console.log(`\n⚡️ Confirming connection to ${ux.colors.white(outputs.cluster.name)}:`)
     await pexec('kubectl get nodes')
-      .then(out => console.log(out.stdout))
+      .then((out) => console.log(out.stdout))
       .catch(err => console.log(err))
 
   } catch(e) {
     console.log(`⚠️  Could not boostrap ${ux.colors.white(STACK_ENV)} state. Proceeding with setup...`)
   }
 
-  // sync stacks>workspaces for separated imperative state
-  console.log(`🛠  We will now initialize ${ux.colors.white('Terraform Cloud')} workspaces for the ${ux.colors.white(TFC_ORG)} organization...\n`)
-  const errors:any[] = [] 
-  for(const stack of STACKS[STACK_ENV]) {
-    ux.print(`✅ Setting up a ${ux.colors.green(stack)} workspace in Terraform Cloud...`)
-   try {
-      let res = await createWorkspace(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
-    } catch(e) {
-      errors.push(ux.colors.gray(`   - ${ux.colors.green(stack)}: ${e} \n`) as string)
-    }
+
+  if(OPERATION === "service") {
+    let service = `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`
+    STACKS[STACK_ENV] = [service]
   }
 
-  if(errors.length > 0) { // TODO: Improve this to check the error cases
-    console.log(`\n⚠️  ${ux.colors.italic('It appears that Terraform Cloud returned at least one non-200 status for your stack')}`)
-    console.log(`${ux.colors.gray(' - If this your first run & workspaces have not been created you may need to set a TFC_TOKEN secret')}`)
-    console.log(`${ux.colors.gray(' - If this is not your first run & workspaces have been created correctly you can safely ignore this')}`)
-    console.log(`${ux.colors.gray('   Details...')}`)
-    console.log(errors.join(''))
-  }
+  // destroy in reverse order
+  STACKS[STACK_ENV].reverse()
 
   console.log('')
-  await ux.print(`📦 Deploying ${ux.colors.white(STACK_REPO)}:${ux.colors.white(STACK_TAG)} to ${ux.colors.white(STACK_ENV)} cluster`)
+  await ux.print(`🗑  Attempting to destroy the following stacks: ${ux.colors.white(STACKS[STACK_ENV].join(' '))}`)
+  await ux.print(`📝 ${ux.colors.green('FYI:')} There may be stack resources that must be manually deleted.`)
+  await ux.print(`👉 ${ux.colors.green('So...')} If this destroy fails, you may have to clean up resources manuallyi & run again.`)
   console.log('')
 
   // then we build a command to deploy each stack
   const stacks = STACKS[STACK_ENV].map(stack => {
     return {
       command: './node_modules/.bin/cdktf',
-      args: ['deploy', stack, '--auto-approve'],
+      args: ['destroy', stack, '--auto-approve'],
       options: {
         stdio: 'inherit',
         env: {
           ...process.env,
           CDKTF_LOG_LEVEL: 'fatal',
           STACK_ENV: STACK_ENV,
-          STACK_TYPE: STACK_TYPE,
           STACK_REPO: STACK_REPO,
-          STACK_TAG: STACK_TAG
+          STACK_TYPE: STACK_TYPE
         }
       }
     }
   })
 
   // deploy stack in synchronous series
-  exec(stacks).then(async () => {
+  exec(stacks).then(async () => {  
+
+    if(OPERATION === 'service') {
+      console.log('')
+      await ux.print(`✅ Completed destroy of ${ux.colors.red(STACK_REPO)} in ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
+      console.log('')
+      return;
+    }
+
+    let url = `https://app.terraform.io/app/${TFC_ORG}/workspaces/`
+    console.log(`✅ View state in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
 
      try {
 
-      let url = `https://app.terraform.io/app/${TFC_ORG}/workspaces/`
-      console.log('✅ Deployed. Load Balancer may take some time to provision on your first deploy.')
-      console.log(`✅ View state in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
-      console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or ${ux.colors.white('Lens.app')} for status & IP.`)
-      console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)
+      console.log(`\n🔒 Syncing infrastructure state with ${ux.colors.white(STACK_TEAM)} team...`)
 
-      sdk.track([], {
-        event_name: 'deployment',
-        event_action: 'succeeded',
-        environment: STACK_ENV,
-        repo: STACK_REPO,
-        branch: STACK_TAG,
-        commit: STACK_TAG,
-        image: `${STACK_REPO}:${STACK_TAG}`
-      })
+      // get workspace outputs
+      const outputs:any = {}
+      await Promise.all(STACKS[STACK_ENV].map(async (stack) => {
+        let output = await getWorkspaceOutputs(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
+        Object.assign(outputs, output)
+      }))
 
+      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
+      await ux.print(`\n✅ Cleared the state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
+      await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
+      await ux.print(`✅ Completed destroy of ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
+      console.log('')
 
     } catch (e) {
-      sdk.track([], {
-        event_name: 'deployment',
-        event_action: 'failed',
-        environment: STACK_ENV,
-        repo: STACK_REPO,
-        branch: STACK_TAG,
-        commit: STACK_TAG,
-        image: `${STACK_REPO}:${STACK_TAG}`
-      })
       console.log('There was an error updating workflow state', e)
       process.exit(1)
     }
 
   })
   .catch(e => {
-    sdk.track([], {
-      event_name: 'deployment',
-      event_action: 'failed',
-      environment: STACK_ENV,
-      repo: STACK_REPO,
-      branch: STACK_TAG,
-      commit: STACK_TAG,
-      image: `${STACK_REPO}:${STACK_TAG}`
-    })
-    console.log('There was an error deploying the infrastructure.')
     process.exit(1)
   })
 
@@ -203,7 +208,6 @@ async function exec(stacks: any) {
         child.on('close', (code) => {
           if(code === 0) {
             console.log(ux.colors.green('Finished: '), ux.colors.white(`${obj.command} ${obj.args.join(' ')}`))
-            console.log('')
           } else {
             console.log(ux.colors.red('Failure: '), ux.colors.white(`${obj.command} ${obj.args.join(' ')}`))
           }

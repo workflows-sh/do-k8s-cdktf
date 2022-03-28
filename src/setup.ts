@@ -94,6 +94,7 @@ async function run() {
   }
 
   await ux.print(`⚙️  Deploying the stack via ${ux.colors.white('Terraform Cloud')} for the ${ux.colors.white(TFC_ORG)} organization...`)
+  console.log('')
 
   // then we build a command to deploy each stack
   const stacks = STACKS[STACK_ENV].map(stack => {
@@ -104,7 +105,7 @@ async function run() {
         stdio: 'inherit',
         env: {
           ...process.env,
-          CDKTF_LOG_LEVEL: 'fatal',
+          CDKTF_LOG_LEVEL: 'error',
           STACK_ENV: STACK_ENV,
           STACK_TYPE: STACK_TYPE
         }
@@ -180,6 +181,7 @@ async function exec(stacks: any) {
         child.on('close', (code) => {
           if(code === 0) {
             console.log(ux.colors.green('Finished: '), ux.colors.white(`${obj.command} ${obj.args.join(' ')}`))
+            console.log('')
           } else {
             console.log(ux.colors.red('Failure: '), ux.colors.white(`${obj.command} ${obj.args.join(' ')}`))
           }

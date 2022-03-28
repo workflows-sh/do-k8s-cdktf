@@ -2,7 +2,7 @@ version: "1"
 commands:
   - name: setup:0.2.0
     run: ./node_modules/.bin/ts-node /ops/src/setup.ts
-    description: "Setup Kubernetes infrastructure on Digital Ocean"
+    description: "Setup Kubernetes infrastructure on DigitalOcean"
     env:
       static:
         - STACK_TYPE=do-k8s
@@ -19,7 +19,24 @@ commands:
         - PRD_DO_K8S_STATE
   - name: deploy:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/deploy.ts
-    description: "Deploy a service to Kubernetes infrastructure on Digital Ocean"
+    description: "Deploy a service to Kubernetes infrastructure on DigitalOcean"
+    env:
+      static:
+        - STACK_TYPE=do-k8s
+        - STACK_ENTROPY=01012022
+        - TFC_ORG=cto-ai
+      secrets:
+        - DO_TOKEN
+        - DO_SPACES_ACCESS_KEY_ID
+        - DO_SPACES_SECRET_ACCESS_KEY
+        - TFC_TOKEN
+      configs:
+        - DEV_DO_K8S_STATE
+        - STG_DO_K8S_STATE
+        - PRD_DO_K8S_STATE
+  - name: destroy:0.1.0
+    run: ./node_modules/.bin/ts-node /ops/src/destroy.ts
+    description: "Destroy resources in your Kubernetes infrastructure on DigitalOcean"
     env:
       static:
         - STACK_TYPE=do-k8s
@@ -64,12 +81,12 @@ pipelines:
         - STACK_TYPE=do-k8s
         - ORG=cto-ai
         - REPO=sample-app
-        - REF=dev
+        - REF=main
       secrets:
         - GITHUB_TOKEN
         - DO_TOKEN
     # events:
-      # - "github:crystalcommerce/marketplace-app:pull_request.opened"
+      # - "github:workflows-sh/sample-app:pull_request.opened"
     jobs:
       - name: sample-app-build-job
         description: example build step
@@ -79,17 +96,17 @@ pipelines:
           - python
           - wget
           - tar
-        # bind:
+        bind:
+          - /Users/slajax/repos/cto.ai/dev/workflows/sample-react:/ops/application
           # - /path/to/host/repo:/ops/application
-          # - /Users/slajax/repos/cto.ai/dev/workflows/sample-react:/ops/application
         steps:
           - wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
           - tar xf ./doctl-1.68.0-linux-amd64.tar.gz
           - ./doctl version
-          - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
-          - cd $REPO && ls -asl
-          - git fetch && git checkout $REF
-          # - cd application && ls -asl
+          # - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
+          # - cd $REPO && ls -asl
+          # - git fetch && git checkout $REF
+          - cd application && ls -asl
           - ../doctl auth init -t $DO_TOKEN
           - ../doctl registry login
           - docker build -f Dockerfile -t registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF .

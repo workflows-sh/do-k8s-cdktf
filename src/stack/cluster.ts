@@ -2,7 +2,7 @@ import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
-import { Project, ProjectResources, Vpc, KubernetesCluster, SpacesBucket, Certificate, Droplet, Loadbalancer, Cdn, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
+import { Project, ProjectResources, Vpc, KubernetesCluster, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
 interface StackProps {
   org: string
@@ -59,17 +59,12 @@ export default class Cluster extends TerraformStack{
 
     //TODO: make dynamic
     const region = 'nyc3'
-    const domains = ['tryapp.xyz', '*.tryapp.xyz']
     const k8ver = '1.21.9-do.0';
     const dropletSize = 's-1vcpu-2gb'; 
 
     const vpc = new Vpc(this, `${this.id}-vpc`, {
       name: `${this.env}-vpc-${this.org}-${this.entropy}`,
       region: region
-    })
-  
-    const project = new Project(this, `${this.id}-project`, {
-      name: `${this.env}`
     })
 
     const cluster = new KubernetesCluster(this, `${this.id}-k8s`, {
@@ -96,39 +91,27 @@ export default class Cluster extends TerraformStack{
 
     new DatabaseUser(this, `${this.id}-db-user`, {
       clusterId: `${db.id}`,
-      name: `root`
+      name: `root`,
     })
 
     new DatabaseDb(this, `${this.id}-db`, {
       clusterId: `${db.id}`,
       name: `${this.id}`
+      // need to add ENV var for DB Pass
     })
 
-    const bucket = new SpacesBucket(this, `${this.id}-bucket`,{
-      name: `${this.env}-bucket-${this.org}-${this.entropy}`,
-      region: region,
-      acl: 'private'
-    })
-
-    const stackCert = new Certificate(this, `${this.id}-cert`,{
-      name: `${this.key}-ssl-${this.org}-${this.entropy}`,
-      type: 'lets_encrypt',
-      domains: domains
-    })
-
-    new Cdn(this, `${this.id}-cdn`, {
-      origin:  bucket.bucketDomainName,
-      certificateName: stackCert.name
+    const project = new Project(this, `${this.id}-project`, {
+      name: `${this.env}`,
+      dependsOn:[vpc, cluster, db]
     })
 
     new ProjectResources(this, `${this.id}-resources`, {
       project: project.id,
       resources: [
-        bucket.urn,
         cluster.urn,
-        db.urn
+        db.urn,
       ],
-      dependsOn: [ project, bucket, cluster, db ]
+      dependsOn: [ project, cluster, db ]
     })
 
     this.vpc = vpc
