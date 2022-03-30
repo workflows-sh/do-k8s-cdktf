@@ -91,22 +91,6 @@ export default class Service extends TerraformStack{
       //console.log('There was an error fetching secrets from the cluster vault:', e)
     }
 
-    const environment = Object.assign({
-      PORT: "3000",
-      // DB_HOST: 
-      // DB_PORT: 
-      // DB_USER: 
-      // REDIS_HOST: 
-      // REDIS_PORT: 
-      // MQ_URL: 
-      // MQ_NAME: 
-      CDN_URL: bucket.bucketDomainName
-    }, { ...secrets })
-
-    const env = Object.keys(environment).map((e) => {
-      return { name: e, value: environment[e] }
-    })
-
     const defaultServicesConfig = '{ "sample-app": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
     var servicesConfig: string;
 
@@ -131,6 +115,28 @@ export default class Service extends TerraformStack{
 
     const jsonServicesConfig = JSON.parse(servicesConfig);
     const serviceConfig = jsonServicesConfig[`${this.repo}`]
+    var environment: object;
+
+    if(serviceConfig.hasOwnProperty('map'))
+    {
+      const serviceMapConfig =  serviceConfig['map']
+      Object.keys(serviceMapConfig).map(function(key) {
+        serviceMapConfig[key] = secrets[serviceMapConfig[key]];
+      });
+      environment = serviceMapConfig
+    }
+    else
+    {
+      environment = Object.assign({
+        PORT: "80",
+      }, { ...secrets })
+    }
+    
+
+    const env = Object.keys(environment).map((e) => {
+      return { name: e, value: environment[e] }
+    })
+
      
     const dYaml = {
       apiVersion: 'apps/v1',
@@ -170,12 +176,28 @@ export default class Service extends TerraformStack{
       }
     };
 
+    var lbAnnotations: any
+    if (serviceConfig['sticky_sessions'] == "yes")
+    {
+      lbAnnotations = {
+        'service.beta.kubernetes.io/do-loadbalancer-protocol': 'http',
+        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-type': 'cookies',
+        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-name': `${this.env}-lb-${this.repo}`,
+        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-ttl': '60',
+        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
+      }
+    }
+    else
+    {
+      lbAnnotations = {
+        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
+      }
+    }
+
     const lbYaml = {
       apiVersion: 'v1',
       kind: 'Service',
-      annotations: {
-        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
-      },
+      annotations: lbAnnotations,
       metadata: {
         name: `${this.env}-lb-${this.repo}`,
         labels: {
@@ -199,7 +221,7 @@ export default class Service extends TerraformStack{
       waitForRollout: true
     })
 
-    new Manifest(this, `${this.id}-service-manifest`, {
+    new Manifest(this, `${this.id}-lb-manifest`, {
       wait: true,
       yamlBody: YAML.stringify(lbYaml),
       waitForRollout: true
