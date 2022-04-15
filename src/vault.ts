@@ -426,17 +426,20 @@ async function bulk() {
     var vaultKeysList: string;
     switch(STACK_ENV) { 
       case 'dev': { 
-        vaultMap = process.env.DO_DEV_VAULT || defaultVault;
+        const { DO_DEV_VAULT } = await sdk.getSecret('DO_DEV_VAULT');
+        vaultMap = `${DO_DEV_VAULT}`;
         vaultKeysList="Keys found in DO_DEV_VAULT:";
         break; 
       } 
       case 'stg': { 
-        vaultMap = process.env.DO_STG_VAULT || defaultVault;
+        const { DO_STG_VAULT } = await sdk.getSecret('DO_STG_VAULT');
+        vaultMap = `${DO_STG_VAULT}`;
         vaultKeysList="Keys found in DO_STG_VAULT:";
         break; 
       }
       case 'prd': { 
-        vaultMap = process.env.DO_PRD_VAULT || defaultVault;
+        const { DO_PRD_VAULT } = await sdk.getSecret('DO_PRD_VAULT');
+        vaultMap = `${DO_PRD_VAULT}`;
         vaultKeysList="Keys found in DO_PRD_VAULT:";
         break; 
       } 
@@ -446,14 +449,27 @@ async function bulk() {
         break; 
       } 
     }
+    var vaultMapObj = {};
+    var mKey: string;
+    var mVal: string;
 
-    const jsonVaultMap = JSON.parse(vaultMap);
-    
-    
-    
-    for (var vKey in jsonVaultMap) {
-      vaultKeysList = `${vaultKeysList}\n ${vKey}`
+    const listVaultMap = vaultMap.split(/\r?\n/);
+    for (var line of listVaultMap) {
+      mKey=line.substring(0, line.indexOf("=")); 
+      mVal=line.substring(line.indexOf("=") + 1);
+      if(mKey)
+      {  
+        vaultMapObj[mKey]=mVal;
+      }
     }
+    
+    for (var vKey in vaultMapObj) {
+      vaultKeysList = `${vaultKeysList}\n ${vKey}`;
+    }
+
+    //for (var vKey in jsonVaultMap) {
+    //  vaultKeysList = `${vaultKeysList}\n ${vKey}`
+    //}
 
     const { confirmation } = await ux.prompt<{
       confirmation: boolean
@@ -487,10 +503,10 @@ async function bulk() {
     const encode = (str: string):string => Buffer.from(str, 'binary').toString('base64');
     const data = JSON.parse(vault.stdout); 
     
-    for (var vKey in jsonVaultMap) {
+    for (var vKey in vaultMapObj) {
     
-      console.log(`\n🔐 Setting ${vKey} to ${jsonVaultMap[vKey]} on the ${VAULT_KEY} with type ${typeof jsonVaultMap[vKey]}`)
-      data.data[vKey] = encode(jsonVaultMap[vKey].toString())
+      console.log(`\n🔐 Setting ${vKey} to ${vaultMapObj[vKey]} on the ${VAULT_KEY} with type ${typeof vaultMapObj[vKey]}`)
+      data.data[vKey] = encode(vaultMapObj[vKey].toString())
 
     }
     // not sure why but k8s breaks annotations json with \n
