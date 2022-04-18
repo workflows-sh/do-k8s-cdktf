@@ -391,6 +391,138 @@ async function destroy() {
 
 }
 
+async function bulk() {
+
+  sdk.log(`🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...`)
+
+  const { STACK_ENV } = await ux.prompt<{
+    STACK_ENV: string
+  }>({
+      type: 'input',
+      name: 'STACK_ENV',
+      default: 'dev',
+      message: 'What is the name of the environment?'
+    })
+
+  try {
+
+    const VAULT_KEY = `${STACK_ENV}-${STACK_TYPE}`
+    const PREFIX = `${STACK_ENV}_${STACK_TYPE}`.replace(/-/g, '_').toUpperCase()
+    const STATE_KEY = `${PREFIX}_STATE`
+    const STATE = process.env[`${STATE_KEY}`]
+    var SECRET_KEY : string
+    var SECRET_VAL : string
+
+    if(!STATE) {
+      console.log('')
+      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store.`)
+      await ux.print(`You may need to run the setup workflow to populate the state into your team config.`)
+      console.log('')
+      process.exit()
+    }
+
+    const defaultVault = '{}'
+    var vaultMap: string;
+    var vaultKeysList: string;
+    switch(STACK_ENV) { 
+      case 'dev': { 
+        const { DO_DEV_VAULT } = await sdk.getSecret('DO_DEV_VAULT');
+        vaultMap = `${DO_DEV_VAULT}`;
+        vaultKeysList="Keys found in DO_DEV_VAULT:";
+        break; 
+      } 
+      case 'stg': { 
+        const { DO_STG_VAULT } = await sdk.getSecret('DO_STG_VAULT');
+        vaultMap = `${DO_STG_VAULT}`;
+        vaultKeysList="Keys found in DO_STG_VAULT:";
+        break; 
+      }
+      case 'prd': { 
+        const { DO_PRD_VAULT } = await sdk.getSecret('DO_PRD_VAULT');
+        vaultMap = `${DO_PRD_VAULT}`;
+        vaultKeysList="Keys found in DO_PRD_VAULT:";
+        break; 
+      } 
+      default: { 
+        vaultMap = defaultVault;
+        vaultKeysList="Keys found:";
+        break; 
+      } 
+    }
+    var vaultMapObj = {};
+    var mKey: string;
+    var mVal: string;
+
+    const listVaultMap = vaultMap.split(/\r?\n/);
+    for (var line of listVaultMap) {
+      mKey=line.substring(0, line.indexOf("=")); 
+      mVal=line.substring(line.indexOf("=") + 1);
+      if(mKey)
+      {  
+        vaultMapObj[mKey]=mVal;
+      }
+    }
+    
+    for (var vKey in vaultMapObj) {
+      vaultKeysList = `${vaultKeysList}\n ${vKey}`;
+    }
+
+    //for (var vKey in jsonVaultMap) {
+    //  vaultKeysList = `${vaultKeysList}\n ${vKey}`
+    //}
+
+    const { confirmation } = await ux.prompt<{
+      confirmation: boolean
+    }>({
+      type: 'confirm',
+      name: 'confirmation',
+      message: `${vaultKeysList}\nAre you sure to set/update the previous keys in the ${VAULT_KEY}?`
+    })
+
+    if(!confirmation) {
+      return console.log('Exiting...')
+    }
+
+    const outputs = JSON.parse(STATE || '')
+    // make sure doctl config is setup for the ephemeral state
+    await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
+      .catch(err => console.log(err))
+
+    // populate our kubeconfig from doctl into the container
+    await exec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+      .catch(err => { throw err })
+
+    // confirm we can connect to the cluster to see nodes
+    console.log(`\n⚡️ Confirming connection to ${ux.colors.white(outputs.cluster.name)}:`)
+      await exec('kubectl get nodes')
+        .catch(err => console.log(err))
+
+    const vault = await pexec(`kubectl get secret ${VAULT_KEY} -o json`) 
+    //console.log(vault.stdout)
+
+    const encode = (str: string):string => Buffer.from(str, 'binary').toString('base64');
+    const data = JSON.parse(vault.stdout); 
+    
+    for (var vKey in vaultMapObj) {
+    
+      console.log(`\n🔐 Setting ${vKey} to ${vaultMapObj[vKey]} on the ${VAULT_KEY} with type ${typeof vaultMapObj[vKey]}`)
+      data.data[vKey] = encode(vaultMapObj[vKey].toString())
+
+    }
+    // not sure why but k8s breaks annotations json with \n
+    // so delete last applied annotations before applying
+    delete data?.metadata?.annotations
+    const payload = JSON.stringify(data)
+    await pexec(`echo '${payload}' | kubectl apply -f -`) 
+    console.log(`✅ Bulk set/update was succesful\n`)
+    
+    
+  } catch (e) {
+    console.log('there was an error:', e)
+  }
+
+}
+
 switch(ARGS[0]) {
 
   case "init":
@@ -422,6 +554,12 @@ switch(ARGS[0]) {
     destroy()
 
   break;
+
+  case "bulk":
+
+    bulk()
+
+  break;
   case "help":
   default:
     console.log("\n ⛔️ No sub command provided. See available subcommands:\n")
@@ -430,6 +568,7 @@ switch(ARGS[0]) {
     console.log("Available subcommands:")
     console.log("   ops run vault init")
     console.log("   ops run vault set")
+    console.log("   ops run vault bulk")
     console.log("   ops run vault ls")
     console.log("   ops run vault rm")
     console.log("   ops run vault destroy")
