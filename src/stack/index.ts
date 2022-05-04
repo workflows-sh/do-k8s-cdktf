@@ -44,7 +44,7 @@ export class Stack {
     await registry.initialize()
 
     // create each vpc, cluster & db
-    const cluster = new Cluster(app, `dev-${this.key}`, {
+    const cluster = new Cluster(app, `${this.env}-${this.key}`, {
       org: this.org,
       env: this.env,
       key: this.key,
@@ -54,7 +54,7 @@ export class Stack {
     })
     await cluster.initialize()
 
-    const service = new Service(app, `dev-${this.repo}-${this.key}`, {
+    const service = new Service(app, `${this.env}-${this.repo}-${this.key}`, {
       org: this.org,
       env: this.env,
       key: this.key,
