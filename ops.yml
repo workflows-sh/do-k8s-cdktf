@@ -7,7 +7,7 @@ commands:
       static:
         - STACK_TYPE=do-k8s
         - STACK_ENTROPY=01012022
-        - TFC_ORG=tola
+        - TFC_ORG=cto-ai
       secrets:
         - DO_TOKEN
         - DO_SPACES_ACCESS_KEY_ID
@@ -24,7 +24,7 @@ commands:
       static:
         - STACK_TYPE=do-k8s
         - STACK_ENTROPY=01012022
-        - TFC_ORG=tola
+        - TFC_ORG=cto-ai
       secrets:
         - DO_TOKEN
         - DO_SPACES_ACCESS_KEY_ID
@@ -72,3 +72,43 @@ commands:
         list: 'list keys in the environment vault'
         remove: ' remove a specific key in the environment vault'
         destroy: 'destroy the environment vault'
+pipelines:
+  - name: sample-app-pipeline:0.1.0
+    description: build a release for deployment
+    env:
+      static:
+        - DEBIAN_FRONTEND=noninteractive
+        - STACK_TYPE=do-k8s
+        - ORG=cto-ai
+        - REPO=sample-app
+        - REF=main
+      secrets:
+        - GITHUB_TOKEN
+        - DO_TOKEN
+    # events:
+      # - "github:workflows-sh/sample-app:pull_request.opened"
+    jobs:
+      - name: sample-app-build-job
+        description: example build step
+        packages:
+          - git
+          - unzip
+          - python
+          - wget
+          - tar
+        bind:
+          - /Users/slajax/repos/cto.ai/dev/workflows/sample-react:/ops/application
+          # - /path/to/host/repo:/ops/application
+        steps:
+          - wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
+          - tar xf ./doctl-1.68.0-linux-amd64.tar.gz
+          - ./doctl version
+          # - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
+          # - cd $REPO && ls -asl
+          # - git fetch && git checkout $REF
+          - cd application && ls -asl
+          - ../doctl auth init -t $DO_TOKEN
+          - ../doctl registry login
+          - docker build -f Dockerfile -t registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF .
+          - docker push registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF
+
