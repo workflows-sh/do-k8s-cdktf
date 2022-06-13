@@ -15,7 +15,11 @@ which includes interative workflows that work in the CLI & Slack, but also full 
   - [Demo](#demo)
   - [Latest Version](#latest-version)
   - [Getting Started](#getting-started)
+    - [Create API keys on DigitalOcean](#create-api-keys-on-digitalocean)
+    - [Create an Account on Terraform Cloud](#create-an-account-on-terraform-cloud)
   - [Usage](#usage)
+    - [Build your Workflow](#build-your-workflow)
+    - [Run your Workflow](#run-your-workflow)
   - [Getting help](#getting-help)
   - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
   - [Limitations](#limitations)
@@ -26,11 +30,11 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 
 ## Prerequisites
 
-- CTO.ai Account and CLI installed 
-- Docker, AWS CDK, and AWS CLI installed on your machine.
-- Digital Ocean Account & CLI installed 
-- Terraform Cloud Account 
-
+- [CTO.ai Account](https://cto.ai/docs/setup-flow) and [CLI installed](https://cto.ai/docs/install-cli) 
+- [Docker](https://docs.docker.com/get-docker/), [AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html), and [AWS CLI installed on your machine](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+- [Digital Ocean Account](https://www.digitalocean.com/) & [CLI installed](https://docs.digitalocean.com/reference/doctl/) 
+- [Terraform Cloud Account](https://app.terraform.io/session) 
+- Kubernetes Lens or any Kubernetes Orchestration tool installed on your machine.
 
 ## Demo 
 
@@ -38,22 +42,43 @@ You can try run and deploy the DigitalOcean Kubernetes workflow directly on our 
 
 ## Latest Version 
 
-The DigitalOcean Kubernetes workflow is updated 
+The DigitalOcean Kubernetes workflow is updated and running the latest version 
 
+---
 
 ## Getting Started 
 
-- [Creating and setting up your Account on CTO.ai](https://cto.ai/auth/realms/ops/protocol/openid-connect/registrations?client_id=www&redirect_uri=https://cto.ai/questions&response_mode=fragment&response_type=code&scope=openid&nonce=d2e4022c-04e1-4f70-910c-31a9d25ef321)
-- [Creating your API keys and Spaces Access and Secret keys on DigitalOcean]()
-- [Creating your API token on Terraform Cloud]()
-- [Add and update your tokens on CTO.ai secrets dashboard]()
+Before you can deploy this Workflow, you need to [Setup your account on CTO.ai](https://cto.ai/docs/setup-flow)
+
+### Create API keys on DigitalOcean
+
+
+- [In your DigitalOcean account, create your API keys for your CTO.ai Workflow setup](https://cto.ai/docs/digital-ocean#create-api-keys)
+
+
+---
+
+### Create an Account on Terraform Cloud
+
+- Sign up and log in to your account on [Terraform Cloud](https://cto.ai/docs/digital-ocean#create-account-on-terraform-cloud) and add your [**Tokens** to your account on CTO.ai](https://cto.ai/docs/digital-ocean#add-tokens-to-ctoai).
+
+---
 
 ## Usage 
 
-- [Building your Digital Ocean Workflow]()
-- [Running your Digital Ocean Workflow]()
-- [Publishing Workflow]()
+After creating your accounts on CTO.ai and Terraform Cloud, set up your Infrastructure. 
 
+### Build your Workflow
+
+- [Build your DigitalOcean Command and setup your Kubernetes infrastructure on DigitalOcean using the CLI](https://cto.ai/docs/digital-ocean#build-and-run-your-workflow)
+
+
+### Run your Workflow 
+
+- [Run your DigitalOcean Workflow locally using the CLI](https://cto.ai/docs/digital-ocean#run-digitalocean-workflow)
+
+
+---
 
 ## Getting help 
 
@@ -74,6 +99,8 @@ Kindly check our [Contributing guide]() on how to propose bugfixes and improveme
 
 
 ## Limitations 
+
+You can only deploy and set up this workflow on Digital Ocean. 
 
 
 ## Learn more 
