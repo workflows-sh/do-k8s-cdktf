@@ -7,24 +7,84 @@ The repo also includes a PaaS workflow integration with CTO.ai that streamlines 
 which includes interative workflows that work in the CLI & Slack, but also full CI/CD & Preview Environments for all delivery.
 
 
-## Legend
+## Table of contents
 
-## Setup
+- [Overview](#overview)
+  - [Table of contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Demo](#demo)
+  - [Latest Version](#latest-version)
+  - [Getting Started](#getting-started)
+  - [Usage](#usage)
+  - [Getting help](#getting-help)
+  - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
+  - [Limitations](#limitations)
+  - [Learn more](#learn-more)
+  - [License](#license)
 
-### Pre-requesites
-### Environment
-### Setup Digital Ocean
-### Setup Terraform Cloud
-### Setup CTO.ai Workflow
-#### Secrets
-#### Configs
-#### Outputs
+---
 
-## Getting Started
-### Building Workflows
-### Publishing Workflows
-### Running Workflows
-### Custom Workflows
+## Prerequisites
+
+- CTO.ai Account and CLI installed 
+- Docker, AWS CDK, and AWS CLI installed on your machine.
+- Digital Ocean Account & CLI installed 
+- Terraform Cloud Account 
+
+
+## Demo 
+
+You can try run and deploy the DigitalOcean Kubernetes workflow directly on our [Platform](CTO.ai).
+
+## Latest Version 
+
+The DigitalOcean Kubernetes workflow is updated 
+
+
+## Getting Started 
+
+- [Creating and setting up your Account on CTO.ai](https://cto.ai/auth/realms/ops/protocol/openid-connect/registrations?client_id=www&redirect_uri=https://cto.ai/questions&response_mode=fragment&response_type=code&scope=openid&nonce=d2e4022c-04e1-4f70-910c-31a9d25ef321)
+- [Creating your API keys and Spaces Access and Secret keys on DigitalOcean]()
+- [Creating your API token on Terraform Cloud]()
+- [Add and update your tokens on CTO.ai secrets dashboard]()
+
+## Usage 
+
+- [Building your Digital Ocean Workflow]()
+- [Running your Digital Ocean Workflow]()
+- [Publishing Workflow]()
+
+
+## Getting help 
+
+CTO.ai DigitalOcean Kubernetes Workflow is an open source project and is supported by the community. You can buy a supported version of CTO DOKS at CTO.ai
+
+Learn more about CTO.ai community support channels [here](https://cto.ai/community)
+
+- Slack (chat): https://cto.ai/community
+
+
+## Reporting bugs and Contributing 
+
+Feel free to submit PRs or to fill issues. Every kind of help is appreciated.
+
+Kindly check our [Contributing guide]() on how to propose bugfixes and improvements, and submitting pull requests to the project.
+
+- View issues related to this image in our GitHub repository: https://github.com/workflows-sh/do-k8s/issues
+
+
+## Limitations 
+
+
+## Learn more 
+
+- Read the manual at: https://cto.ai/docs#
+
 
 ## License 
-MIT
+
+&copy; CTO.ai, Inc., 2022
+
+Distributed under MIT License (`The MIT License`).
+
+See [LICENSE](LICENSE) for more information.
