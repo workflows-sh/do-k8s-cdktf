@@ -26,9 +26,13 @@ $ cd do-k8s
 
 3. Do your best to have [well-formatted commit messages](https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html) for each change. This provides consistency throughout the project, and ensures that commit messages are able to be formatted properly by various git tools.
 
-
 4. Finally, push the commits to your fork and submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)
 
+<<<<<<< HEAD
+4. Finally, push the commits to your fork and submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)
+
+=======
+>>>>>>> da93f40 (add contributing.md)
 
 ## Once you've filed the PR:
 
