@@ -26,11 +26,11 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 
 ## Prerequisites
 
-- CTO.ai Account and CLI installed 
-- Docker, AWS CDK, and AWS CLI installed on your machine.
-- Digital Ocean Account & CLI installed 
-- Terraform Cloud Account 
-
+- [CTO.ai Account](https://cto.ai/docs/setup-flow) and [CLI installed](https://cto.ai/docs/install-cli) 
+- [Docker](https://docs.docker.com/get-docker/), [AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html), and [AWS CLI installed on your machine](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+- [Digital Ocean Account](https://www.digitalocean.com/) & [CLI installed](https://docs.digitalocean.com/reference/doctl/) 
+- [Terraform Cloud Account](https://app.terraform.io/session) 
+- Kubernetes Lens or any Kubernetes Orchestration tool installed on your machine.
 
 ## Demo 
 
@@ -38,7 +38,7 @@ You can try run and deploy the DigitalOcean Kubernetes workflow directly on our 
 
 ## Latest Version 
 
-The DigitalOcean Kubernetes workflow is updated 
+The DigitalOcean Kubernetes workflow is updated and running the latest version 
 
 
 ## Getting Started 
