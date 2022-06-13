@@ -15,6 +15,10 @@ which includes interative workflows that work in the CLI & Slack, but also full 
   - [Demo](#demo)
   - [Latest Version](#latest-version)
   - [Getting Started](#getting-started)
+    - [Create API keys on DigitalOcean](#create-api-keys-on-digitalocean)
+    - [Create an Account on Terraform Cloud](#create-an-account-on-terraform-cloud)
+    - [Create Secrets from Settings](#create-secrets-from-settings)
+    - [Create your Sample - App](#create-your-sample---app)
   - [Usage](#usage)
   - [Getting help](#getting-help)
   - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
@@ -40,8 +44,36 @@ You can try run and deploy the DigitalOcean Kubernetes workflow directly on our 
 
 The DigitalOcean Kubernetes workflow is updated and running the latest version 
 
+---
 
 ## Getting Started 
+
+Before you can deploy this Workflow, you need to [Setup your account on CTO.ai](https://cto.ai/docs/setup-flow)
+
+### Create API keys on DigitalOcean
+
+
+- [In your DigitalOcean account, create your API keys for your CTO.ai Workflow setup](https://cto.ai/docs/digital-ocean#create-api-keys)
+
+
+---
+
+### Create an Account on Terraform Cloud
+
+- Sign up and log in to your account on [Terraform Cloud](https://cto.ai/docs/digital-ocean#create-account-on-terraform-cloud)
+
+
+
+
+
+### Create Secrets from Settings 
+
+Secrets are encrypted environment variables that CTO.ai utilizes within your workflow to build and run your application and deployments. [Follow this guide to create secrets from settings.](https://cto.ai/docs/aws-ecs-fargate#create-secrets-from-settings), and also [generate your Github token](https://cto.ai/docs/aws-ecs-fargate#generate-github-token)
+
+### Create your Sample - App
+
+[You need to build and run your Sample-app](https://cto.ai/docs/aws-ecs-fargate#ecs---fargate-demo). Your sample App can be a Node.js HTTP server with a Dockerfile and `ops.yml` file.
+
 
 - [Creating and setting up your Account on CTO.ai](https://cto.ai/auth/realms/ops/protocol/openid-connect/registrations?client_id=www&redirect_uri=https://cto.ai/questions&response_mode=fragment&response_type=code&scope=openid&nonce=d2e4022c-04e1-4f70-910c-31a9d25ef321)
 - [Creating your API keys and Spaces Access and Secret keys on DigitalOcean]()
