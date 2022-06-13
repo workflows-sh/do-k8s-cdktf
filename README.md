@@ -17,9 +17,9 @@ which includes interative workflows that work in the CLI & Slack, but also full 
   - [Getting Started](#getting-started)
     - [Create API keys on DigitalOcean](#create-api-keys-on-digitalocean)
     - [Create an Account on Terraform Cloud](#create-an-account-on-terraform-cloud)
-    - [Create Secrets from Settings](#create-secrets-from-settings)
-    - [Create your Sample - App](#create-your-sample---app)
   - [Usage](#usage)
+    - [Build your Workflow](#build-your-workflow)
+    - [Run your Workflow](#run-your-workflow)
   - [Getting help](#getting-help)
   - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
   - [Limitations](#limitations)
@@ -60,31 +60,25 @@ Before you can deploy this Workflow, you need to [Setup your account on CTO.ai](
 
 ### Create an Account on Terraform Cloud
 
-- Sign up and log in to your account on [Terraform Cloud](https://cto.ai/docs/digital-ocean#create-account-on-terraform-cloud)
+- Sign up and log in to your account on [Terraform Cloud](https://cto.ai/docs/digital-ocean#create-account-on-terraform-cloud) and add your [**Tokens** to your account on CTO.ai](https://cto.ai/docs/digital-ocean#add-tokens-to-ctoai).
 
-
-
-
-
-### Create Secrets from Settings 
-
-Secrets are encrypted environment variables that CTO.ai utilizes within your workflow to build and run your application and deployments. [Follow this guide to create secrets from settings.](https://cto.ai/docs/aws-ecs-fargate#create-secrets-from-settings), and also [generate your Github token](https://cto.ai/docs/aws-ecs-fargate#generate-github-token)
-
-### Create your Sample - App
-
-[You need to build and run your Sample-app](https://cto.ai/docs/aws-ecs-fargate#ecs---fargate-demo). Your sample App can be a Node.js HTTP server with a Dockerfile and `ops.yml` file.
-
-
-- [Creating and setting up your Account on CTO.ai](https://cto.ai/auth/realms/ops/protocol/openid-connect/registrations?client_id=www&redirect_uri=https://cto.ai/questions&response_mode=fragment&response_type=code&scope=openid&nonce=d2e4022c-04e1-4f70-910c-31a9d25ef321)
-- [Creating your API keys and Spaces Access and Secret keys on DigitalOcean]()
-- [Creating your API token on Terraform Cloud]()
-- [Add and update your tokens on CTO.ai secrets dashboard]()
+---
 
 ## Usage 
 
-- [Building your Digital Ocean Workflow]()
-- [Running your Digital Ocean Workflow]()
-- [Publishing Workflow]()
+After creating your accounts on CTO.ai and Terraform Cloud, set up your Infrastructure. 
+
+### Build your Workflow
+
+- [Build your DigitalOcean Command and setup your Kubernetes infrastructure on DigitalOcean using the CLI](https://cto.ai/docs/digital-ocean#build-and-run-your-workflow)
+
+
+### Run your Workflow 
+
+- [Run your DigitalOcean Workflow locally using the CLI](https://cto.ai/docs/digital-ocean#run-digitalocean-workflow)
+
+
+---
 
 
 ## Getting help 
@@ -106,6 +100,8 @@ Kindly check our [Contributing guide]() on how to propose bugfixes and improveme
 
 
 ## Limitations 
+
+You can only deploy and set up this workflow on Digital Ocean. 
 
 
 ## Learn more 
