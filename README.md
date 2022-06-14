@@ -86,7 +86,7 @@ CTO.ai DigitalOcean Kubernetes Workflow is an open source project and is support
 
 Learn more about CTO.ai community support channels [here](https://cto.ai/community)
 
-- Slack (chat): https://cto.ai/community
+- **Slack (Chat):** https://cto.ai/community
 
 
 ## Reporting bugs and Contributing 
