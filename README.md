@@ -93,28 +93,22 @@ After creating your accounts on CTO.ai and Terraform Cloud, set up your Infrastr
 - [Build your DigitalOcean Command and setup your Kubernetes infrastructure on DigitalOcean using the CLI](https://cto.ai/docs/digital-ocean#build-and-run-your-workflow)
 
 
----
 
 ### Setup DigitalOcean Kubernetes Infrastructure 
 
 - [Setup your DigitalOcean Infrastructure workflow](https://cto.ai/docs/digital-ocean#setup-digitalocean-infrastructure-workflow)
 
 
----
 
 ### View Configuration in Terraform Workspace
 
 - Back in your Terraform Workspace you will see your [DigitalOcean workflow created in your Terraform workspace](https://cto.ai/docs/digital-ocean#view-configurations-in-terraform-workspace)
-
----
-
 
 
 ### Run the Deploy Workflow
 
 - Run the deploy Workflow, [this command will deploy your DigitalOcean Kubernetes Workflow to your environment](https://cto.ai/docs/digital-ocean#run-the-deploy-workflow)
 
----
 
 ### View your Kubernetes Services 
 
