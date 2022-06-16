@@ -1,3 +1,8 @@
+
+![digitalocean](https://user-images.githubusercontent.com/24816990/174116002-537e98e5-3f4c-4c02-9419-49fc0b9ffe39.svg)
+
+
+
 # Overview
 
 This repo includes a complete Digital Ocean infrastructure complete with Kubernetes, Container Registry, Postgres, Spaces, Load Balancers
