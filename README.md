@@ -110,7 +110,7 @@ You can only deploy and set up this workflow on Digital Ocean.
 
 ## Learn more 
 
-- Read the manual at: https://cto.ai/docs#
+- Read the manual on our [website](https://cto.ai/docs/digital-ocean)
 
 
 ## License 
