@@ -87,7 +87,7 @@ After creating your accounts on CTO.ai and Terraform Cloud, set up your Infrastr
 
 ## Getting help 
 
-CTO.ai DigitalOcean Kubernetes Workflow is an open source project and is supported by the community. You can buy a supported version of CTO DOKS at CTO.ai
+CTO.ai DigitalOcean Kubernetes Workflow is an open source project and is supported by the community. All versions on DOKS CTO.ai are supported on our Platform.  
 
 Learn more about CTO.ai community support channels [here](https://cto.ai/community)
 
