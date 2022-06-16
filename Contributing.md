@@ -10,7 +10,7 @@ Please make sure that there aren't existing pull requests attempting to address 
 
 ### Reporting Issues 
 
-Bugs, feature requests, and development-related questions should be directed to our [GitHub issue tracker](https://github.com/workflows-sh/aws-ecs-fargate/issues).
+Bugs, feature requests, and development-related questions should be directed to our [GitHub issue tracker](https://github.com/workflows-sh/do-k8s/issues)
 
 
 When reporting a bug pr issue, please try to provide as much context as possible such as **operating system**, **CDK version**, **Docker version**, **NVM or NPM version**, **CTO.ai CLI version** and anything else that might be relevant to the bug. For feature requests, please explain what you're trying to do and how the requested feature would help you do that.
