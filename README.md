@@ -20,14 +20,20 @@ which includes interative workflows that work in the CLI & Slack, but also full 
   - [Demo](#demo)
   - [Latest Version](#latest-version)
   - [Getting Started](#getting-started)
+    - [Create Account](#create-account)
     - [Create API keys on DigitalOcean](#create-api-keys-on-digitalocean)
     - [Create an Account on Terraform Cloud](#create-an-account-on-terraform-cloud)
   - [Usage](#usage)
     - [Build your Workflow](#build-your-workflow)
-    - [Run your Workflow](#run-your-workflow)
+    - [Setup DigitalOcean Kubernetes Infrastructure](#setup-digitalocean-kubernetes-infrastructure)
+    - [View Configuration in Terraform Workspace](#view-configuration-in-terraform-workspace)
+    - [Run the Deploy Workflow](#run-the-deploy-workflow)
+    - [View your Kubernetes Services](#view-your-kubernetes-services)
+    - [Destroy your Environment](#destroy-your-environment)
   - [Getting help](#getting-help)
   - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
   - [Learn more](#learn-more)
+  - [Other questions?](#other-questions)
   - [License](#license)
 
 ---
@@ -42,7 +48,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 
 ## Demo 
 
-You can try run and deploy the DigitalOcean Kubernetes workflow directly on our [Platform](CTO.ai).
+You can try run, configure, and deploy the DigitalOcean Kubernetes workflow directly on our [Platform](https://cto.ai/platform). kindly follow the steps below to get started 🚀
 
 ## Latest Version 
 
@@ -51,6 +57,16 @@ The DigitalOcean Kubernetes workflow is updated and running the latest version
 ---
 
 ## Getting Started 
+
+```
+git clone https://github.com/workflows-sh/do-k8s.git
+
+cd do-k8s
+```
+
+---
+
+### Create Account 
 
 Before you can deploy this Workflow, you need to [Setup your account on CTO.ai](https://cto.ai/docs/setup-flow)
 
@@ -77,16 +93,45 @@ After creating your accounts on CTO.ai and Terraform Cloud, set up your Infrastr
 - [Build your DigitalOcean Command and setup your Kubernetes infrastructure on DigitalOcean using the CLI](https://cto.ai/docs/digital-ocean#build-and-run-your-workflow)
 
 
-### Run your Workflow 
+---
 
-- [Run your DigitalOcean Workflow locally using the CLI](https://cto.ai/docs/digital-ocean#run-digitalocean-workflow)
+### Setup DigitalOcean Kubernetes Infrastructure 
+
+- [Setup your DigitalOcean Infrastructure workflow](https://cto.ai/docs/digital-ocean#setup-digitalocean-infrastructure-workflow)
+
+
+---
+
+### View Configuration in Terraform Workspace
+
+- Back in your Terraform Workspace you will see your [DigitalOcean workflow created in your Terraform workspace](https://cto.ai/docs/digital-ocean#view-configurations-in-terraform-workspace)
+
+---
+
+
+
+### Run the Deploy Workflow
+
+- Run the deploy Workflow, [this command will deploy your DigitalOcean Kubernetes Workflow to your environment](https://cto.ai/docs/digital-ocean#run-the-deploy-workflow)
+
+---
+
+### View your Kubernetes Services 
+
+You can view your [DigitalOcean Kubernetes Services in any Kubernetes tool like Lens to see all running services](https://cto.ai/docs/digital-ocean#kubernetes-services-are-running)
+
+---
+
+### Destroy your Environment 
+
+After configuring your DigitalOcean Kubernetes Workflow, [you can destroy your environment and services that are running](https://cto.ai/docs/digital-ocean#destroy-your-environment)
 
 
 ---
 
 ## Getting help 
 
-CTO.ai DigitalOcean Kubernetes Workflow is an open source project and is supported by the community. All versions on DOKS CTO.ai are supported on our Platform.  
+CTO.ai DigitalOcean Kubernetes Workflow is an open-source project and is supported by the community. All versions on DOKS CTO.ai are supported on our Platform.  
 
 Learn more about CTO.ai community support channels [here](https://cto.ai/community)
 
@@ -105,6 +150,12 @@ Kindly check our [Contributing guide]() on how to propose bugfixes and improveme
 ## Learn more 
 
 - Read the manual on our [website](https://cto.ai/docs/digital-ocean)
+
+---
+
+## Other questions?
+
+Check out our [FAQ](https://cto.ai/docs/faq), send us an [email](https://cto.ai/docs/contact-support), or open an issue with your question. We'd love to hear from you!
 
 
 ## License 
