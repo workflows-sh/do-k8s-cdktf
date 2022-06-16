@@ -27,7 +27,6 @@ which includes interative workflows that work in the CLI & Slack, but also full 
     - [Run your Workflow](#run-your-workflow)
   - [Getting help](#getting-help)
   - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
-  - [Limitations](#limitations)
   - [Learn more](#learn-more)
   - [License](#license)
 
@@ -100,12 +99,7 @@ Feel free to submit PRs or to fill issues. Every kind of help is appreciated.
 
 Kindly check our [Contributing guide]() on how to propose bugfixes and improvements, and submitting pull requests to the project.
 
-- View issues related to this image in our GitHub repository: https://github.com/workflows-sh/do-k8s/issues
-
-
-## Limitations 
-
-You can only deploy and set up this workflow on Digital Ocean. 
+- View issues related to this image in our GitHub repository [issue tracker](https://github.com/workflows-sh/do-k8s/issues )
 
 
 ## Learn more 
