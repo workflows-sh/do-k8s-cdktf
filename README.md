@@ -17,6 +17,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 - [Overview](#overview)
   - [Table of contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
+  - [DigitalOcean Infrastructure](#digitalocean-infrastructure)
   - [Demo](#demo)
   - [Latest Version](#latest-version)
   - [Getting Started](#getting-started)
@@ -33,6 +34,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
   - [Getting help](#getting-help)
   - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
   - [Learn more](#learn-more)
+  - [Commands](#commands)
   - [Other questions?](#other-questions)
   - [License](#license)
 
@@ -45,6 +47,16 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 - [Digital Ocean Account](https://www.digitalocean.com/) & [CLI installed](https://docs.digitalocean.com/reference/doctl/) 
 - [Terraform Cloud Account](https://app.terraform.io/session) 
 - Kubernetes Lens or any Kubernetes Orchestration tool installed on your machine.
+
+## DigitalOcean Infrastructure
+
+These workflows allows to manage Crystal Commerce Infrastructure over DigitalOcean, the resources that are defined for be managed are the following.
+* Docker Registry
+* Kubernetes Cluster
+* MySQL Databases
+* Postgres Databases
+* Redis Databases
+* Load balancers
 
 ## Demo 
 
@@ -144,6 +156,10 @@ Kindly check our [Contributing guide](https://github.com/workflows-sh/do-k8s/blo
 ## Learn more 
 
 - Read the manual on our [website](https://cto.ai/docs/digital-ocean)
+
+## Commands 
+
+- Check out our [Commands](Commands.md) file on how to setup configs in your environment. 
 
 ---
 
