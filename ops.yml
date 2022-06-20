@@ -111,9 +111,8 @@ pipelines:
           - python
           - wget
           - tar
-        bind:
-          - /Users/slajax/repos/cto.ai/dev/workflows/sample-react:/ops/application
-          # - /path/to/host/repo:/ops/application
+      #  # bind:
+      #     # - /path/to/host/repo:/ops/application
         steps:
           - wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
           - tar xf ./doctl-1.68.0-linux-amd64.tar.gz
