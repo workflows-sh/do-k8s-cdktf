@@ -1,6 +1,6 @@
 version: "1"
 commands:
-  - name: setup:0.2.0
+  - name: setup:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/setup.ts
     description: "Setup Kubernetes infrastructure on DigitalOcean"
     env:
@@ -17,6 +17,12 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
+        - DO_DEV_K8S_CONFIG
+        - DO_STG_K8S_CONFIG
+        - DO_PRD_K8S_CONFIG
+        - DO_DEV_REDIS_CONFIG
+        - DO_DEV_POSTGRES_CONFIG
+        - DO_DEV_MYSQL_CONFIG
   - name: deploy:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/deploy.ts
     description: "Deploy a service to Kubernetes infrastructure on DigitalOcean"
@@ -34,6 +40,9 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
+        - DO_DEV_SERVICES
+        - DO_STG_SERVICES
+        - DO_PRD_SERVICES
   - name: destroy:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/destroy.ts
     description: "Destroy resources in your Kubernetes infrastructure on DigitalOcean"
@@ -51,6 +60,12 @@ commands:
         - DEV_DO_K8S_STATE
         - STG_DO_K8S_STATE
         - PRD_DO_K8S_STATE
+        - DO_DEV_K8S_CONFIG
+        - DO_STG_K8S_CONFIG
+        - DO_PRD_K8S_CONFIG
+        - DO_DEV_SERVICES
+        - DO_STG_SERVICES
+        - DO_PRD_SERVICES
   - name: vault:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/vault.ts
     description: "manage secrets vault"

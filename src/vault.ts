@@ -6,7 +6,7 @@ const pexec = util.promisify(oexec);
 const ARGS = process.argv.slice(3);
 const OPTIONS = require('simple-argv')
 
-const STACK_TYPE = process.env.STACK_TYPE || 'aws-eks-ec2-asg';
+const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
 const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
 async function init() {
@@ -462,7 +462,6 @@ async function bulk() {
         vaultMapObj[mKey]=mVal;
       }
     }
-    
     for (var vKey in vaultMapObj) {
       vaultKeysList = `${vaultKeysList}\n ${vKey}`;
     }
@@ -502,9 +501,9 @@ async function bulk() {
 
     const encode = (str: string):string => Buffer.from(str, 'binary').toString('base64');
     const data = JSON.parse(vault.stdout); 
-    
+
     for (var vKey in vaultMapObj) {
-    
+
       console.log(`\n🔐 Setting ${vKey} to ${vaultMapObj[vKey]} on the ${VAULT_KEY} with type ${typeof vaultMapObj[vKey]}`)
       data.data[vKey] = encode(vaultMapObj[vKey].toString())
 
@@ -515,8 +514,8 @@ async function bulk() {
     const payload = JSON.stringify(data)
     await pexec(`echo '${payload}' | kubectl apply -f -`) 
     console.log(`✅ Bulk set/update was succesful\n`)
-    
-    
+
+
   } catch (e) {
     console.log('there was an error:', e)
   }
@@ -556,10 +555,11 @@ switch(ARGS[0]) {
   break;
 
   case "bulk":
-
+  
     bulk()
 
   break;
+  
   case "help":
   default:
     console.log("\n ⛔️ No sub command provided. See available subcommands:\n")

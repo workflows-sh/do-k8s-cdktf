@@ -64,12 +64,6 @@ export default class Service extends TerraformStack{
 
   async initialize() {
 
-    const bucket = new SpacesBucket(this, `${this.id}-assets`,{
-      name: `${this.key}-${this.repo}-${this.org}-${this.entropy}`,
-      region: 'nyc3',
-      acl: 'private'
-    })
-
     new KubectlProvider(this, `${this.id}-kubectl-provider`, {
       host: this.props?.cluster?.cluster?.endpoint,
       configPath: '/home/ops/.kube/config',
@@ -91,17 +85,47 @@ export default class Service extends TerraformStack{
       //console.log('There was an error fetching secrets from the cluster vault:', e)
     }
 
-    const environment = Object.assign({
-      PORT: "3000",
-      // DB_HOST: 
-      // DB_PORT: 
-      // DB_USER: 
-      // REDIS_HOST: 
-      // REDIS_PORT: 
-      // MQ_URL: 
-      // MQ_NAME: 
-      CDN_URL: bucket.bucketDomainName
-    }, { ...secrets })
+    const defaultServicesConfig = '{ "sample-app": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
+    var servicesConfig: string;
+
+    switch(this.env) { 
+      case 'dev': { 
+        servicesConfig = process.env.DO_DEV_SERVICES || defaultServicesConfig;
+        break; 
+      } 
+      case 'stg': { 
+        servicesConfig = process.env.DO_STG_SERVICES || defaultServicesConfig;
+        break; 
+      }
+      case 'prd': { 
+        servicesConfig = process.env.DO_PRD_SERVICES || defaultServicesConfig;
+        break; 
+      } 
+      default: { 
+        servicesConfig = defaultServicesConfig;
+        break; 
+      } 
+    }
+
+    const jsonServicesConfig = JSON.parse(servicesConfig);
+    const serviceConfig = jsonServicesConfig[`${this.repo}`]
+    var environment: object;
+
+    if(serviceConfig.hasOwnProperty('map'))
+    {
+      const serviceMapConfig =  serviceConfig['map']
+      Object.keys(serviceMapConfig).map(function(key) {
+        serviceMapConfig[key] = secrets[serviceMapConfig[key]];
+      });
+      environment = serviceMapConfig
+    }
+    else
+    {
+      environment = Object.assign({
+        PORT: "80",
+      }, { ...secrets })
+    }
+    
 
     const env = Object.keys(environment).map((e) => {
       return { name: e, value: environment[e] }
@@ -111,22 +135,25 @@ export default class Service extends TerraformStack{
       apiVersion: 'apps/v1',
       kind: 'Deployment',
       metadata: {
-        name: `${this.repo}`,
+        name: `${this.env}-${this.repo}`,
         labels: {
-          'app.kubernetes.io/name': `load-balancer-${this.repo}`
+          'service': `srv-${this.repo}`,
+          'env': `${this.env}`
         },
       },
       spec: {
-        replicas: 2,
+        replicas: serviceConfig['replicas'],
         selector: {
           matchLabels: {
-            'app.kubernetes.io/name': `load-balancer-${this.repo}`
+            'service': `srv-${this.repo}`,
+            'env': `${this.env}`
           }
         },
         template: {
           metadata: {
             labels: {
-              'app.kubernetes.io/name': `load-balancer-${this.repo}`
+              'service': `srv-${this.repo}`,
+              'env': `${this.env}`
             },
           },
           spec: {
@@ -135,33 +162,49 @@ export default class Service extends TerraformStack{
               image: `${this.props?.registry.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
               name: `${this.repo}`,
               env: env,
-              ports: [{
-                containerPort: convert(environment.PORT) || 3000
-              }]
+              imagePullPolicy: 'Always',
+              ports: serviceConfig['ports']
             }]
           }
         }
       }
     };
 
-    const sYaml = {
+    var lbAnnotations: any
+    if (serviceConfig['sticky_sessions'] == "yes")
+    {
+      lbAnnotations = {
+        'service.beta.kubernetes.io/do-loadbalancer-protocol': 'http',
+        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-type': 'cookies',
+        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-name': `${this.env}-lb-${this.repo}`,
+        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-ttl': '60',
+        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
+      }
+    }
+    else
+    {
+      lbAnnotations = {
+        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
+      }
+    }
+
+    const lbYaml = {
       apiVersion: 'v1',
       kind: 'Service',
+      annotations: lbAnnotations,
       metadata: {
-        name: `${this.repo}-service`,
+        name: `${this.env}-lb-${this.repo}`,
         labels: {
-          'app.kubernetes.io/name': `load-balancer-${this.repo}`
+          'service': `srv-${this.repo}`,
+          'env': `${this.env}`
         }
       },
       spec: {
         selector: {
-          'app.kubernetes.io/name': `load-balancer-${this.repo}`
+          'service': `srv-${this.repo}`,
+          'env': `${this.env}`
         },
-        ports: [{
-          'protocol': 'TCP',
-          'port': 80,
-          'targetPort': convert(environment.PORT) || 3000
-        }],
+        ports: serviceConfig['lb_ports'],
         type: 'LoadBalancer'
       }
     };
@@ -172,14 +215,10 @@ export default class Service extends TerraformStack{
       waitForRollout: true
     })
 
-    new Manifest(this, `${this.id}-service-manifest`, {
+    new Manifest(this, `${this.id}-lb-manifest`, {
       wait: true,
-      yamlBody: YAML.stringify(sYaml),
+      yamlBody: YAML.stringify(lbYaml),
       waitForRollout: true
-    })
-
-    new TerraformOutput(this, `bucket`, {
-      value: bucket
     })
 
   }
