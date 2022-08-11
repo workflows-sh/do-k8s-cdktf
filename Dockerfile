@@ -42,6 +42,9 @@ ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 USER ops
 WORKDIR /ops
 
+RUN curl -L https://raw.githubusercontent.com/istio/istio/master/release/downloadIstioCtl.sh | sh -
+RUN echo "export PATH=\$HOME/.istioctl/bin:\$PATH" >> $HOME/.bashrc
+
 ADD --chown=ops:9999 package.json .
 ADD --chown=ops:9999 package-lock.json .
 RUN npm install --loglevel=error

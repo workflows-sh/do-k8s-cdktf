@@ -108,8 +108,13 @@ export default class Service extends TerraformStack{
     }
 
     const jsonServicesConfig = JSON.parse(servicesConfig);
-    const serviceConfig = jsonServicesConfig[`${this.repo}`]
+    let serviceConfig = jsonServicesConfig[`${this.repo}`]
     var environment: object;
+
+    if(serviceConfig === null || serviceConfig === undefined)
+    {
+      serviceConfig = '';
+    }
 
     if(serviceConfig.hasOwnProperty('map'))
     {

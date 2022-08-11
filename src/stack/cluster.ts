@@ -13,6 +13,10 @@ interface StackProps {
   entropy: string
 }
 
+interface StackOutputs {
+  vpc_id: string;
+}
+
 export default class Cluster extends TerraformStack{
   public vpc: Vpc
   public cluster: KubernetesCluster
@@ -28,6 +32,7 @@ export default class Cluster extends TerraformStack{
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
+  public stackOutputs: StackOutputs
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
@@ -61,7 +66,7 @@ export default class Cluster extends TerraformStack{
 
     //TODO: make dynamic
     const region = 'nyc3';
-    const k8ver = '1.22.7-do.0';
+    const k8ver = '1.22.12-do.0';
     const defaultK8sConfig = '{ "dropletSize": "s-1vcpu-2gb", "nodeCount": 3, "minNodes": 1, "maxNodes": 5, "autoScale": true }';
     const defaultRedisConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "6" }]';
     const defaultMySQLConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "8", "db_user": "root", "db_name": "default_db", "auth": "mysql_native_password" }]';
@@ -253,10 +258,21 @@ export default class Cluster extends TerraformStack{
     this.redisArr = redisArr
     this.mysqlArr = mysqlArr
 
+    this.stackOutputs = {
+      vpc_id: this.vpc.id,
+    }
+
+    new TerraformOutput(this, `${this.id}-outputs`, {
+      description:
+        "An object with attributes from cluster resources",
+      value: this.stackOutputs,
+    });
+
     new TerraformOutput(this, 'vpc', {
       value: {
         name: this.vpc.name,
-        urn: this.vpc.urn
+        urn: this.vpc.urn,
+        id: this.vpc.id,
       }
     })
     new TerraformOutput(this, 'cluster', {

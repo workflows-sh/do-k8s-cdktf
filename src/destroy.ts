@@ -39,6 +39,7 @@ async function run() {
     })
 
   let STACK_REPO = 'cluster'
+  let ENV_STACKS: string[] = [];
 
   if(OPERATION === 'service') {
     ({ STACK_REPO } = await ux.prompt<{
@@ -49,6 +50,27 @@ async function run() {
       default: 'sample-app',
       message: 'What is the name of the application repo?'
     }))
+  }
+  else{
+    const { STACKS_TO_SETUP } = await ux.prompt<{
+      STACKS_TO_SETUP: string;
+    }>({
+      type: "checkbox",
+      name: "STACKS_TO_SETUP",
+      choices: ["registry", "main-stack", "nat"],
+      message: "Which stacks do you want to setup?",
+    });
+
+    if(STACKS_TO_SETUP.includes('registry')){
+      ENV_STACKS.push(`registry-${STACK_TYPE}`);
+    }
+    if(STACKS_TO_SETUP.includes('main-stack')){
+      ENV_STACKS.push(`${STACK_ENV}-${STACK_TYPE}`);
+    }
+    if(STACKS_TO_SETUP.includes('nat')){
+      ENV_STACKS.push(`${STACK_ENV}-nat-${STACK_TYPE}`);
+    }
+    
   }
 
   function delay(ms: number) {
@@ -75,16 +97,9 @@ async function run() {
   }
 
   const STACKS:any = {
-    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
-    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
-    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
-    'all': [
-      `registry-${STACK_TYPE}`,
-
-      `dev-${STACK_TYPE}`, 
-      `stg-${STACK_TYPE}`,
-      `prd-${STACK_TYPE}`,
-    ]
+    'dev': ENV_STACKS,
+    'stg': ENV_STACKS,
+    'prd': ENV_STACKS,
   }
 
   if(!STACKS[STACK_ENV].length) {
