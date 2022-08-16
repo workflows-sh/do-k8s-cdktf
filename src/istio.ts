@@ -81,22 +81,61 @@ async function run() {
   // then we build a command to deploy each stack
   let stacks = [{}]
   if(ISTIO_ACTION === "install") {
-    stacks = [{
-      command: '/home/ops/.istioctl/bin/istioctl',
-      args: ['install', '--set', 'profile=demo', '-y'],
-      options: {
+    stacks = [
+      {
+        command: '/home/ops/.istioctl/bin/istioctl',
+        args: ['install', '--set', 'profile=demo', '-y'],
+        options: {
         stdio: 'inherit'
+        }
+      },
+      {
+        command: 'kubectl',
+        args: ['delete', 'deployment', 'istio-ingressgateway', '--namespace=istio-system'],
+        options: {
+        stdio: 'inherit'
+        }
+      },
+      {
+        command: 'kubectl',
+        args: ['delete', 'deployment', 'istio-egressgateway', '--namespace=istio-system'],
+        options: {
+        stdio: 'inherit'
+        }
+      },
+      {
+        command: 'kubectl',
+        args: ['label', 'namespace', 'default', 'istio-injection=enabled', '--overwrite'],
+        options: {
+        stdio: 'inherit'
+        }
+      },
+      {
+        command: 'kubectl',
+        args: ['delete', 'service', 'istio-ingressgateway', '--namespace=istio-system'],
+        options: {
+        stdio: 'inherit'
+        }
       }
-    }];
+  ];
   }
   else {
-    stacks = [{
-      command: '/home/ops/.istioctl/bin/istioctl',
-      args: ['x', 'uninstall', '--purge','-y'],
-      options: {
+    stacks = [
+      {
+        command: '/home/ops/.istioctl/bin/istioctl',
+        args: ['x', 'uninstall', '--purge','-y'],
+        options: {
+          stdio: 'inherit'
+        }
+      },
+      {
+        command: 'kubectl',
+        args: ['label', 'namespace', 'default', 'istio-injection-', '--overwrite'],
+        options: {
         stdio: 'inherit'
+        }
       }
-    }];
+    ];
   }
 
 

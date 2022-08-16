@@ -56,37 +56,69 @@ async function run() {
   
   const jsonServicesConfig = JSON.parse(servicesConfig);
   const servicesList = Object.keys(jsonServicesConfig);
-  
-  const { STACK_REPO } = await ux.prompt<{
-    STACK_REPO: string
+  let UTIL_NAME: string = '';
+  let STACK_REPO: string = '';
+  let STACK_TAG: string = '';
+  const { SRV_TYPE } = await ux.prompt<{
+    SRV_TYPE: string
   }>({
+      type: 'list',
+      name: 'SRV_TYPE',
+      choices: ['app','util'],
+      default: 'app',
+      message: 'Which type of application?'
+    })
+
+  if(SRV_TYPE === "util") {
+    ({ UTIL_NAME }  = await ux.prompt<{
+      UTIL_NAME: string
+    }>({
+        type: 'list',
+        name: 'UTIL_NAME',
+        choices: ['egress-gateway'],
+        default: 'egress-gateway',
+        message: 'Select the Service to install'
+      }));
+  }
+
+  if(SRV_TYPE === "app"){
+    ({ STACK_REPO } = await ux.prompt<{
+      STACK_REPO: string
+    }>({
       type: 'list',
       name: 'STACK_REPO',
       choices: servicesList,
       message: 'What is the name of the application repo?'
-    })
+    }));
 
 
-  const { STACK_TAG } = await ux.prompt<{
-    STACK_TAG: string
-  }>({
+    ({ STACK_TAG } = await ux.prompt<{
+      STACK_TAG: string
+    }>({
       type: 'input',
       name: 'STACK_TAG',
       default: 'main',
       message: 'What is the name of the tag or branch?'
-    })
-
-  const STACKS:any = {
-    'dev': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'stg': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'prd': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
-    'all': [
-      `registry-${STACK_TYPE}`,
-      `dev-${STACK_TYPE}`, 
-      `stg-${STACK_TYPE}`,
-      `prd-${STACK_TYPE}`
-    ]
+    }));
   }
+
+  let STACKS: any;
+  if(SRV_TYPE === "app"){
+  STACKS = {
+      'dev': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+      'stg': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+      'prd': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
+    }
+  }
+  else {
+    STACKS = {
+      'dev': [`${STACK_ENV}-${UTIL_NAME}-${STACK_TYPE}`],
+      'stg': [`${STACK_ENV}-${UTIL_NAME}-${STACK_TYPE}`],
+      'prd': [`${STACK_ENV}-${UTIL_NAME}-${STACK_TYPE}`],
+    }
+  }
+
+
 
   if(!STACKS[STACK_ENV].length) {
     return console.log('Please try again with environment set to <dev|stg|prd|all>')

@@ -2,7 +2,7 @@ import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
-import { Project, ProjectResources, Vpc, KubernetesCluster, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
+import { Project, ProjectResources, Vpc, KubernetesCluster, KubernetesNodePool, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
 interface StackProps {
   org: string
@@ -78,6 +78,8 @@ export default class Cluster extends TerraformStack{
     var redisCount = 0;
     var pgCount = 0;
     var mysqlCount = 0;
+    var npCount = 0;
+    var egCount = 0;
     
     switch(this.env) { 
       case 'dev': { 
@@ -139,6 +141,50 @@ export default class Cluster extends TerraformStack{
         autoScale: autoScale
       },
     });
+
+    var nodePoolArr : KubernetesNodePool[];
+    nodePoolArr = [];
+    npCount = 0;
+    if(jsonK8sConfig.hasOwnProperty('nodePools'))
+    {
+      for (let nodePool of jsonK8sConfig.nodePools)
+      {
+        npCount = npCount + 1;
+        nodePoolArr.push(
+          new KubernetesNodePool(this, `${this.id}-pool-${npCount}`, {
+            name: `${this.env}-${nodePool.name}-pool-${this.org}-${this.entropy}`,
+            clusterId: cluster.id,
+            size: nodePool.dropletSize,
+            nodeCount: nodePool.nodeCount,
+            minNodes: nodePool.minNodes,
+            maxNodes: nodePool.maxNodes,
+            autoScale: nodePool.autoScale,
+            labels: nodePool.labels
+          })
+        );
+      }
+    }
+
+    if(jsonK8sConfig.hasOwnProperty('egressPool'))
+    {
+
+      const egressPool  =  new KubernetesNodePool(this, `${this.id}-egress-pool`, {
+            name: `${this.env}-egress-pool-${this.org}-${this.entropy}`,
+            clusterId: cluster.id,
+            size: jsonK8sConfig.egressPool.dropletSize,
+            nodeCount: jsonK8sConfig.egressPool.nodeCount,
+            autoScale: false,
+            labels: jsonK8sConfig.egressPool.labels,
+            taint: [{
+              key: "workloadKind",
+              value: "egress",
+              effect: "NoSchedule",
+            }],
+          })
+       
+      
+    }
+
 
     var pgArr : DatabaseCluster[]; 
     pgArr = [];

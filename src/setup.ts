@@ -34,7 +34,7 @@ async function run() {
   }>({
     type: "checkbox",
     name: "STACKS_TO_SETUP",
-    choices: ["registry", "main-stack", "nat"],
+    choices: ["registry", "main-stack"],
     message: "Which stacks do you want to setup?",
   });
 
@@ -45,9 +45,6 @@ async function run() {
   }
   if(STACKS_TO_SETUP.includes('main-stack')){
     ENV_STACKS.push(`${STACK_ENV}-${STACK_TYPE}`);
-  }
-  if(STACKS_TO_SETUP.includes('nat')){
-    ENV_STACKS.push(`${STACK_ENV}-nat-${STACK_TYPE}`);
   }
   
 
@@ -164,10 +161,12 @@ async function run() {
           .then(out => console.log(out.stdout))
           .catch(err => console.log(err))
       }
-      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
-      console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
-      await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
-      console.log(outputs)
+      if(STACKS_TO_SETUP.includes('main-stack')){
+        const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
+        console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
+        await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
+        console.log(outputs)
+      }
 
       console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or Lens for status.`)
       console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)

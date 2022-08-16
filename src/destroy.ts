@@ -16,6 +16,8 @@ async function run() {
   const TFC_ORG = process.env.TFC_ORG || ''
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
+  let UTIL_NAME: string = '';
+  let SRV_TYPE: string = '';
 
   sdk.log(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
 
@@ -42,14 +44,37 @@ async function run() {
   let ENV_STACKS: string[] = [];
 
   if(OPERATION === 'service') {
-    ({ STACK_REPO } = await ux.prompt<{
-      STACK_REPO: string
+    ({ SRV_TYPE } = await ux.prompt<{
+      SRV_TYPE: string
     }>({
-      type: 'input',
-      name: 'STACK_REPO',
-      default: 'sample-app',
-      message: 'What is the name of the application repo?'
-    }))
+        type: 'list',
+        name: 'SRV_TYPE',
+        choices: ['app','util'],
+        default: 'app',
+        message: 'Which type of application?'
+      }))
+
+    if(SRV_TYPE === "util") {
+      ({ UTIL_NAME }  = await ux.prompt<{
+        UTIL_NAME: string
+      }>({
+          type: 'list',
+          name: 'UTIL_NAME',
+          choices: ['egress-gateway'],
+          default: 'egress-gateway',
+          message: 'Select the Service to destroy'
+        }))
+    }
+    else {
+      ({ STACK_REPO } = await ux.prompt<{
+        STACK_REPO: string
+      }>({
+        type: 'input',
+        name: 'STACK_REPO',
+        default: 'sample-app',
+        message: 'What is the name of the application repo?'
+      }))
+    }
   }
   else{
     const { STACKS_TO_SETUP } = await ux.prompt<{
@@ -57,7 +82,7 @@ async function run() {
     }>({
       type: "checkbox",
       name: "STACKS_TO_SETUP",
-      choices: ["registry", "main-stack", "nat"],
+      choices: ["registry", "main-stack"],
       message: "Which stacks do you want to setup?",
     });
 
@@ -67,10 +92,6 @@ async function run() {
     if(STACKS_TO_SETUP.includes('main-stack')){
       ENV_STACKS.push(`${STACK_ENV}-${STACK_TYPE}`);
     }
-    if(STACKS_TO_SETUP.includes('nat')){
-      ENV_STACKS.push(`${STACK_ENV}-nat-${STACK_TYPE}`);
-    }
-    
   }
 
   function delay(ms: number) {
@@ -100,6 +121,15 @@ async function run() {
     'dev': ENV_STACKS,
     'stg': ENV_STACKS,
     'prd': ENV_STACKS,
+  }
+
+  if(OPERATION === "service") {
+    let service = `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`
+    STACKS[STACK_ENV] = [service]
+    if (SRV_TYPE === "util"){
+      service = `${STACK_ENV}-${UTIL_NAME}-${STACK_TYPE}`
+    }
+    STACKS[STACK_ENV] = [service]
   }
 
   if(!STACKS[STACK_ENV].length) {
@@ -134,10 +164,7 @@ async function run() {
   }
 
 
-  if(OPERATION === "service") {
-    let service = `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`
-    STACKS[STACK_ENV] = [service]
-  }
+  
 
   // destroy in reverse order
   STACKS[STACK_ENV].reverse()
@@ -189,7 +216,7 @@ async function run() {
         let output = await getWorkspaceOutputs(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
         Object.assign(outputs, output)
       }))
-
+      
       const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
       await ux.print(`\n✅ Cleared the state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
