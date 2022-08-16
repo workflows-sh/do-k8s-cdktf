@@ -2,7 +2,6 @@ import { App } from "cdktf";
 import Cluster from './cluster'
 import Service from './service'
 import Registry from './registry'
-import Nat from './nat'
 import Egress from './egress'
 
 interface StackProps {

@@ -539,6 +539,23 @@ export default class Egress extends TerraformStack{
                 "effect": "NoSchedule",
               }
             ],
+            "affinity": {
+              "nodeAffinity":{
+                "requiredDuringSchedulingIgnoredDuringExecution":{
+                  "nodeSelectorTerms": [
+                    {
+                      "matchExpressions": [
+                        {
+                          "key": "type",
+                          "operator": "In",
+                          "values": ["istio"]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           }
         }
       }
