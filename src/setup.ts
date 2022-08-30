@@ -2,6 +2,7 @@ import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
 import { createWorkspace, getWorkspaceOutputs } from './helpers/tfc/index'
+import Registry from './stack/registry';
 const pexec = util.promisify(oexec);
 const spawn = require('spawn-series');
 
@@ -28,16 +29,29 @@ async function run() {
       message: 'What is the name of the environment?'
     })
 
+  const { STACKS_TO_SETUP } = await ux.prompt<{
+    STACKS_TO_SETUP: string;
+  }>({
+    type: "checkbox",
+    name: "STACKS_TO_SETUP",
+    choices: ["registry", "main-stack"],
+    message: "Which stacks do you want to setup?",
+  });
+
+  let ENV_STACKS: string[] = [];
+
+  if(STACKS_TO_SETUP.includes('registry')){
+    ENV_STACKS.push(`registry-${STACK_TYPE}`);
+  }
+  if(STACKS_TO_SETUP.includes('main-stack')){
+    ENV_STACKS.push(`${STACK_ENV}-${STACK_TYPE}`);
+  }
+  
+
   const STACKS:any = {
-    'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
-    'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
-    'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
-    'all': [
-      `registry-${STACK_TYPE}`,
-      `dev-${STACK_TYPE}`, 
-      `stg-${STACK_TYPE}`,
-      `prd-${STACK_TYPE}`
-    ]
+    'dev': ENV_STACKS,
+    'stg': ENV_STACKS,
+    'prd': ENV_STACKS,
   }
 
   if(!STACKS[STACK_ENV].length) {
@@ -129,7 +143,7 @@ async function run() {
         let output = await getWorkspaceOutputs(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
         Object.assign(outputs, output)
       }))
-
+      if(STACKS_TO_SETUP.includes('main-stack')){
       // populate our kubeconfig from doctl into the container
       await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
         .catch(err => { throw err })
@@ -139,17 +153,20 @@ async function run() {
       await pexec('kubectl get nodes')
         .then(out => console.log(out.stdout))
         .catch(err => console.log(err))
-
+      }
       // Lets make sure cluster is authenticated with registry
-      console.log(`\n🔒 Configuring ${ux.colors.white(outputs.cluster.name)} with pull access on ${ux.colors.white(outputs.registry.endpoint)}`)
-      await pexec(`doctl registry kubernetes-manifest | kubectl apply -f -`)
-        .then(out => console.log(out.stdout))
-        .catch(err => console.log(err))
-
-      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
-      console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
-      await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
-      console.log(outputs)
+      if(STACKS_TO_SETUP.includes('registry')){
+        console.log(`\n🔒 Configuring ${ux.colors.white(outputs.cluster.name)} with pull access on ${ux.colors.white(outputs.registry.endpoint)}`)
+        await pexec(`doctl registry kubernetes-manifest | kubectl apply -f -`)
+          .then(out => console.log(out.stdout))
+          .catch(err => console.log(err))
+      }
+      if(STACKS_TO_SETUP.includes('main-stack')){
+        const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
+        console.log(`\n✅ Saved the following state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
+        await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
+        console.log(outputs)
+      }
 
       console.log(`👀 Check your ${ux.colors.white('Digital Ocean')} dashboard or Lens for status.`)
       console.log(`\n${ux.colors.italic.white('Happy Workflowing!')}\n`)

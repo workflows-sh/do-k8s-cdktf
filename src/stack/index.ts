@@ -2,6 +2,7 @@ import { App } from "cdktf";
 import Cluster from './cluster'
 import Service from './service'
 import Registry from './registry'
+import Egress from './egress'
 
 interface StackProps {
   org: string
@@ -53,6 +54,18 @@ export class Stack {
       entropy: this.entropy
     })
     await cluster.initialize()
+
+    // create each vpc, cluster & db
+    const nat = new Egress(app, `${this.env}-egress-gateway-${this.key}`, {
+      org: this.org,
+      env: this.env,
+      key: this.key,
+      repo: this.repo,
+      tag: this.tag,
+      entropy: this.entropy,
+      cluster: cluster,
+    })
+    await nat.initialize()
 
     const service = new Service(app, `${this.env}-${this.repo}-${this.key}`, {
       org: this.org,

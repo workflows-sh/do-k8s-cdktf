@@ -2,7 +2,7 @@ import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
-import { Project, ProjectResources, Vpc, KubernetesCluster, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
+import { Project, ProjectResources, Vpc, KubernetesCluster, KubernetesNodePool, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
 interface StackProps {
   org: string
@@ -11,6 +11,10 @@ interface StackProps {
   repo: string
   tag: string
   entropy: string
+}
+
+interface StackOutputs {
+  vpc_id: string;
 }
 
 export default class Cluster extends TerraformStack{
@@ -28,6 +32,7 @@ export default class Cluster extends TerraformStack{
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
+  public stackOutputs: StackOutputs
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
@@ -61,7 +66,7 @@ export default class Cluster extends TerraformStack{
 
     //TODO: make dynamic
     const region = 'nyc3';
-    const k8ver = '1.22.7-do.0';
+    const k8ver = '1.22.12-do.0';
     const defaultK8sConfig = '{ "dropletSize": "s-1vcpu-2gb", "nodeCount": 3, "minNodes": 1, "maxNodes": 5, "autoScale": true }';
     const defaultRedisConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "6" }]';
     const defaultMySQLConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "8", "db_user": "root", "db_name": "default_db", "auth": "mysql_native_password" }]';
@@ -73,6 +78,8 @@ export default class Cluster extends TerraformStack{
     var redisCount = 0;
     var pgCount = 0;
     var mysqlCount = 0;
+    var npCount = 0;
+    var egCount = 0;
     
     switch(this.env) { 
       case 'dev': { 
@@ -134,6 +141,50 @@ export default class Cluster extends TerraformStack{
         autoScale: autoScale
       },
     });
+
+    var nodePoolArr : KubernetesNodePool[];
+    nodePoolArr = [];
+    npCount = 0;
+    if(jsonK8sConfig.hasOwnProperty('nodePools'))
+    {
+      for (let nodePool of jsonK8sConfig.nodePools)
+      {
+        npCount = npCount + 1;
+        nodePoolArr.push(
+          new KubernetesNodePool(this, `${this.id}-pool-${npCount}`, {
+            name: `${this.env}-${nodePool.name}-pool-${this.org}-${this.entropy}`,
+            clusterId: cluster.id,
+            size: nodePool.dropletSize,
+            nodeCount: nodePool.nodeCount,
+            minNodes: nodePool.minNodes,
+            maxNodes: nodePool.maxNodes,
+            autoScale: nodePool.autoScale,
+            labels: nodePool.labels
+          })
+        );
+      }
+    }
+
+    if(jsonK8sConfig.hasOwnProperty('egressPool'))
+    {
+
+      const egressPool  =  new KubernetesNodePool(this, `${this.id}-egress-pool`, {
+            name: `${this.env}-egress-pool-${this.org}-${this.entropy}`,
+            clusterId: cluster.id,
+            size: jsonK8sConfig.egressPool.dropletSize,
+            nodeCount: jsonK8sConfig.egressPool.nodeCount,
+            autoScale: false,
+            labels: jsonK8sConfig.egressPool.labels,
+            taint: [{
+              key: "workloadKind",
+              value: "egress",
+              effect: "NoSchedule",
+            }],
+          })
+       
+      
+    }
+
 
     var pgArr : DatabaseCluster[]; 
     pgArr = [];
@@ -253,10 +304,21 @@ export default class Cluster extends TerraformStack{
     this.redisArr = redisArr
     this.mysqlArr = mysqlArr
 
+    this.stackOutputs = {
+      vpc_id: this.vpc.id,
+    }
+
+    new TerraformOutput(this, `${this.id}-outputs`, {
+      description:
+        "An object with attributes from cluster resources",
+      value: this.stackOutputs,
+    });
+
     new TerraformOutput(this, 'vpc', {
       value: {
         name: this.vpc.name,
-        urn: this.vpc.urn
+        urn: this.vpc.urn,
+        id: this.vpc.id,
       }
     })
     new TerraformOutput(this, 'cluster', {
