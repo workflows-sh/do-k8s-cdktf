@@ -93,7 +93,7 @@ pipelines:
     env:
       static:
         - DEBIAN_FRONTEND=noninteractive
-        - STACK_TYPE=do-k8s
+        - STACK_TYPE=do-k8s-cdktf
         - ORG=cto-ai
         - REPO=sample-app
         - REF=main
@@ -108,14 +108,15 @@ pipelines:
         packages:
           - git
           - unzip
-          - python
+          #- python
           - wget
           - tar
       #  # bind:
       #     # - /path/to/host/repo:/ops/application
         steps:
-          - wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
-          - tar xf ./doctl-1.68.0-linux-amd64.tar.gz
+          - wget https://github.com/digitalocean/doctl/releases/download/v1.79.0/doctl-1.79.0-linux-amd64.tar.gz -O doctl.tar.gaz
+          #- wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
+          - tar xf ./doctl.tar.gz
           - ./doctl version
           # - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
           # - cd $REPO && ls -asl
