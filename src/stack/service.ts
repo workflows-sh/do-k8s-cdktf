@@ -111,115 +111,118 @@ export default class Service extends TerraformStack{
     const serviceConfig = jsonServicesConfig[`${this.repo}`]
     var environment: object;
 
-    if(serviceConfig.hasOwnProperty('map'))
+    if(serviceConfig !== undefined)
     {
-      const serviceMapConfig =  serviceConfig['map']
-      Object.keys(serviceMapConfig).map(function(key) {
-        serviceMapConfig[key] = secrets[serviceMapConfig[key]];
-      });
-      environment = serviceMapConfig
-    }
-    else
-    {
-      environment = Object.assign({
-        PORT: "80",
-      }, { ...secrets })
-    }
+      if(serviceConfig.hasOwnProperty('map'))
+      {
+        const serviceMapConfig =  serviceConfig['map']
+        Object.keys(serviceMapConfig).map(function(key) {
+          serviceMapConfig[key] = secrets[serviceMapConfig[key]];
+        });
+        environment = serviceMapConfig
+      }
+      else
+      {
+        environment = Object.assign({
+          PORT: "80",
+        }, { ...secrets })
+      }
     
 
-    const env = Object.keys(environment).map((e) => {
-      return { name: e, value: environment[e] }
-    })
+      const env = Object.keys(environment).map((e) => {
+        return { name: e, value: environment[e] }
+      })
      
-    const dYaml = {
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
-      metadata: {
-        name: `${this.env}-${this.repo}`,
-        labels: {
-          'service': `srv-${this.repo}`,
-          'env': `${this.env}`
+      const dYaml = {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: `${this.env}-${this.repo}`,
+          labels: {
+            'service': `srv-${this.repo}`,
+            'env': `${this.env}`
+          },
         },
-      },
-      spec: {
-        replicas: serviceConfig['replicas'],
-        selector: {
-          matchLabels: {
+        spec: {
+          replicas: serviceConfig['replicas'],
+          selector: {
+            matchLabels: {
+              'service': `srv-${this.repo}`,
+              'env': `${this.env}`
+            }
+          },
+          template: {
+            metadata: {
+              labels: {
+                'service': `srv-${this.repo}`,
+                'env': `${this.env}`
+              },
+            },
+            spec: {
+              containers: [{
+                //image: `digitalocean/flask-helloworld:latest`, // uncomment to test
+                image: `${this.props?.registry.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
+                name: `${this.repo}`,
+                env: env,
+                imagePullPolicy: 'Always',
+                ports: serviceConfig['ports']
+              }]
+            }
+          }
+        }
+      };
+
+      var lbAnnotations: any
+      if (serviceConfig['sticky_sessions'] == "yes")
+      {
+        lbAnnotations = {
+          'service.beta.kubernetes.io/do-loadbalancer-protocol': 'http',
+          'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-type': 'cookies',
+          'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-name': `${this.env}-lb-${this.repo}`,
+          'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-ttl': '60',
+          'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
+        }
+      }
+      else
+      {
+        lbAnnotations = {
+          'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
+        }
+      }
+
+      const lbYaml = {
+        apiVersion: 'v1',
+        kind: 'Service',
+        annotations: lbAnnotations,
+        metadata: {
+          name: `${this.env}-lb-${this.repo}`,
+          labels: {
             'service': `srv-${this.repo}`,
             'env': `${this.env}`
           }
         },
-        template: {
-          metadata: {
-            labels: {
-              'service': `srv-${this.repo}`,
-              'env': `${this.env}`
-            },
+        spec: {
+          selector: {
+            'service': `srv-${this.repo}`,
+            'env': `${this.env}`
           },
-          spec: {
-            containers: [{
-              //image: `digitalocean/flask-helloworld:latest`, // uncomment to test
-              image: `${this.props?.registry.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
-              name: `${this.repo}`,
-              env: env,
-              imagePullPolicy: 'Always',
-              ports: serviceConfig['ports']
-            }]
-          }
+          ports: serviceConfig['lb_ports'],
+          type: 'LoadBalancer'
         }
-      }
-    };
+      };
 
-    var lbAnnotations: any
-    if (serviceConfig['sticky_sessions'] == "yes")
-    {
-      lbAnnotations = {
-        'service.beta.kubernetes.io/do-loadbalancer-protocol': 'http',
-        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-type': 'cookies',
-        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-name': `${this.env}-lb-${this.repo}`,
-        'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-ttl': '60',
-        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
-      }
+      new Manifest(this, `${this.id}-deployment-manifest`, {
+        wait: true,
+        yamlBody: YAML.stringify(dYaml),
+        waitForRollout: true
+      })
+
+      new Manifest(this, `${this.id}-lb-manifest`, {
+        wait: true,
+        yamlBody: YAML.stringify(lbYaml),
+        waitForRollout: true
+      })
+
     }
-    else
-    {
-      lbAnnotations = {
-        'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
-      }
-    }
-
-    const lbYaml = {
-      apiVersion: 'v1',
-      kind: 'Service',
-      annotations: lbAnnotations,
-      metadata: {
-        name: `${this.env}-lb-${this.repo}`,
-        labels: {
-          'service': `srv-${this.repo}`,
-          'env': `${this.env}`
-        }
-      },
-      spec: {
-        selector: {
-          'service': `srv-${this.repo}`,
-          'env': `${this.env}`
-        },
-        ports: serviceConfig['lb_ports'],
-        type: 'LoadBalancer'
-      }
-    };
-
-    new Manifest(this, `${this.id}-deployment-manifest`, {
-      wait: true,
-      yamlBody: YAML.stringify(dYaml),
-      waitForRollout: true
-    })
-
-    new Manifest(this, `${this.id}-lb-manifest`, {
-      wait: true,
-      yamlBody: YAML.stringify(lbYaml),
-      waitForRollout: true
-    })
-
   }
 }
