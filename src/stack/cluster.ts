@@ -28,9 +28,9 @@ export default class Cluster extends TerraformStack{
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
-  public clusterCA: string | undefined
-  public clusterClientKey: string | undefined
-  public clusterClientCert: string | undefined
+  // public clusterCA: string | undefined
+  // public clusterClientKey: string | undefined
+  // public clusterClientCert: string | undefined
 
 
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -139,15 +139,15 @@ export default class Cluster extends TerraformStack{
       },
     });
 
-    this.clusterCA = Fn.base64decode(cluster.kubeConfig[0].clusterCaCertificate)
-    this.clusterClientKey = Fn.base64decode(cluster.kubeConfig[0].clientKey)
-    this.clusterClientCert = Fn.base64decode(cluster.kubeConfig[0].clientCertificate)
+    // this.clusterCA = Fn.base64decode(cluster.kubeConfig[0].clusterCaCertificate)
+    // this.clusterClientKey = Fn.base64decode(cluster.kubeConfig[0].clientKey)
+    // this.clusterClientCert = Fn.base64decode(cluster.kubeConfig[0].clientCertificate)
 
     // debug!!!!!!!!!!!!!!!!!!
-    console.log("THE FOLLOWING ARE CLUSTERCA, CLUSTERCLIENTKEY and CLUSTERCLIENTCERT:\n")
-    console.log(this.clusterCA)
-    console.log(this.clusterClientKey)
-    console.log(this.clusterClientCert)
+    // console.log("THE FOLLOWING ARE CLUSTERCA, CLUSTERCLIENTKEY and CLUSTERCLIENTCERT:\n")
+    // console.log(this.clusterCA)
+    // console.log(this.clusterClientKey)
+    // console.log(this.clusterClientCert)
 
     var pgArr : DatabaseCluster[]; 
     pgArr = [];

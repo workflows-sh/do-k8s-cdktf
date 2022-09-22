@@ -106,7 +106,11 @@ async function run() {
 
     // populate our kubeconfig from doctl into the container
     await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+      .then(out => console.log(out.stdout))
       .catch(err => { throw err })
+
+    // await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+    //   .catch(err => { throw err })
 
     // confirm we can connect to the cluster to see nodes
     console.log(`\n⚡️ Confirming connection to ${ux.colors.white(outputs.cluster.name)}:`)
@@ -151,7 +155,7 @@ async function run() {
         stdio: 'inherit',
         env: {
           ...process.env,
-          CDKTF_LOG_LEVEL: 'trace',
+          CDKTF_LOG_LEVEL: 'error',
           STACK_ENV: STACK_ENV,
           STACK_TYPE: STACK_TYPE,
           STACK_REPO: STACK_REPO,

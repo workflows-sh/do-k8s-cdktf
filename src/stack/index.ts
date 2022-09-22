@@ -63,9 +63,9 @@ export class Stack {
       entropy: this.entropy,
       registry: registry,
       cluster: cluster,
-      clusterCA: cluster.clusterCA,
-      clusterClientKey: cluster.clusterClientKey ,
-      clusterClientCert: cluster.clusterClientCert
+      // clusterCA: cluster.clusterCA,
+      // clusterClientKey: cluster.clusterClientKey ,
+      // clusterClientCert: cluster.clusterClientCert
     })
     await service.initialize()
 

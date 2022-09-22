@@ -22,9 +22,9 @@ interface StackProps {
   entropy: string,
   cluster: any, // fix
   registry: any, //fix 
-  clusterCA: any,
-  clusterClientKey: any,
-  clusterClientCert: any,
+  // clusterCA: any,
+  // clusterClientKey: any,
+  // clusterClientCert: any,
  }
 
 export default class Service extends TerraformStack{
@@ -37,9 +37,9 @@ export default class Service extends TerraformStack{
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
-  public readonly clusterCA: string | undefined
-  public readonly clusterClientKey: string | undefined
-  public readonly clusterClientCert: string | undefined
+  // public readonly clusterCA: string | undefined
+  // public readonly clusterClientKey: string | undefined
+  // public readonly clusterClientCert: string | undefined
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
@@ -52,9 +52,9 @@ export default class Service extends TerraformStack{
     this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.tag = props?.tag ?? 'main'
     this.entropy = props?.entropy ?? '20220921'
-    this.clusterCA = props?.clusterCA ?? ''
-    this.clusterClientKey = props?.clusterClientKey ?? ''
-    this.clusterClientCert = props?.clusterClientCert ?? ''
+    // this.clusterCA = props?.clusterCA ?? ''
+    // this.clusterClientKey = props?.clusterClientKey ?? ''
+    // this.clusterClientCert = props?.clusterClientCert ?? ''
 
     new DigitaloceanProvider(this, `${this.id}-provider`, {
       token: process.env.DO_TOKEN,
@@ -78,9 +78,9 @@ export default class Service extends TerraformStack{
       host: this.props?.cluster?.cluster?.endpoint,
       configPath: '/home/ops/.kube/config',
       loadConfigFile: true,
-      clusterCaCertificate: this.clusterCA,
-      clientKey: this.clusterClientKey,
-      clientCertificate: this.clusterClientCert
+      // clusterCaCertificate: this.clusterCA,
+      // clientKey: this.clusterClientKey,
+      // clientCertificate: this.clusterClientCert
     })
 
     let secrets = {}
@@ -174,7 +174,7 @@ export default class Service extends TerraformStack{
             spec: {
               containers: [{
                 //image: `digitalocean/flask-helloworld:latest`, // uncomment to test
-                image: `${this.props?.registry.registry.endpoint}/${this.repo}-${this.key}:${this.tag}`,
+                image: `${this.props?.registry.registry.endpoint}/${this.repo}:${this.tag}`,
                 name: `${this.repo}`,
                 env: env,
                 imagePullPolicy: 'Always',
@@ -227,7 +227,8 @@ export default class Service extends TerraformStack{
       new Manifest(this, `${this.id}-deployment-manifest`, {
         wait: true,
         yamlBody: YAML.stringify(dYaml),
-        waitForRollout: true
+        waitForRollout: true,
+        forceNew: true,
       })
 
       new Manifest(this, `${this.id}-lb-manifest`, {
