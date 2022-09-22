@@ -24,10 +24,10 @@ export class Stack {
   constructor(props?: StackProps) {
     this.org = props?.org ?? 'cto-ai'
     this.env = props?.env ?? 'dev'
-    this.key = props?.key ?? 'do-k8s'
-    this.repo = props?.repo ?? 'sample-app'
+    this.key = props?.key ?? 'do-k8s-cdktf'
+    this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.tag = props?.tag ?? 'main'
-    this.entropy = props?.entropy ?? '01012022'
+    this.entropy = props?.entropy ?? '20220921'
   }
 
   async initialize() {
@@ -63,6 +63,9 @@ export class Stack {
       entropy: this.entropy,
       registry: registry,
       cluster: cluster,
+      clusterCA: cluster.clusterCA,
+      clusterClientKey: cluster.clusterClientKey ,
+      clusterClientCert: cluster.clusterClientCert
     })
     await service.initialize()
 

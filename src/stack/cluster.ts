@@ -1,6 +1,6 @@
 import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
-import { TerraformStack, TerraformOutput } from 'cdktf'
+import { TerraformStack, TerraformOutput, Fn } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
 import { Project, ProjectResources, Vpc, KubernetesCluster, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
@@ -28,6 +28,10 @@ export default class Cluster extends TerraformStack{
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
+  public clusterCA: string | undefined
+  public clusterClientKey: string | undefined
+  public clusterClientCert: string | undefined
+
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
@@ -36,10 +40,10 @@ export default class Cluster extends TerraformStack{
     this.props = props
     this.org = props?.org ?? 'cto-ai'
     this.env = props?.env ?? 'dev'
-    this.key = props?.key ?? 'do-k8s'
-    this.repo = props?.repo ?? 'sample-app'
+    this.key = props?.key ?? 'do-k8s-cdktf'
+    this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.tag = props?.tag ?? 'main'
-    this.entropy = props?.entropy ?? '01012022'
+    this.entropy = props?.entropy ?? '20220921'
 
     new DigitaloceanProvider(this, `${this.id}-provider`, {
       token: process.env.DO_TOKEN,
@@ -134,6 +138,16 @@ export default class Cluster extends TerraformStack{
         autoScale: autoScale
       },
     });
+
+    this.clusterCA = Fn.base64decode(cluster.kubeConfig[0].clusterCaCertificate)
+    this.clusterClientKey = Fn.base64decode(cluster.kubeConfig[0].clientKey)
+    this.clusterClientCert = Fn.base64decode(cluster.kubeConfig[0].clientCertificate)
+
+    // debug!!!!!!!!!!!!!!!!!!
+    console.log("THE FOLLOWING ARE CLUSTERCA, CLUSTERCLIENTKEY and CLUSTERCLIENTCERT:\n")
+    console.log(this.clusterCA)
+    console.log(this.clusterClientKey)
+    console.log(this.clusterClientCert)
 
     var pgArr : DatabaseCluster[]; 
     pgArr = [];

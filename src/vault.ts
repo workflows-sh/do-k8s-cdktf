@@ -6,7 +6,7 @@ const pexec = util.promisify(oexec);
 const ARGS = process.argv.slice(3);
 const OPTIONS = require('simple-argv')
 
-const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
 const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
 async function init() {

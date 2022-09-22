@@ -1,4 +1,4 @@
-import { RemoteBackend } from 'cdktf';
+import { Fn, RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput } from 'cdktf'
 import { DigitaloceanProvider, SpacesBucket } from '../../.gen/providers/digitalocean';
@@ -9,6 +9,7 @@ import YAML from 'yaml';
 
 import util from 'util';
 import { exec as oexec } from 'child_process';
+import cluster from 'cluster';
 const pexec = util.promisify(oexec);
 const convert = require('string-type-convertor');
 
@@ -21,6 +22,9 @@ interface StackProps {
   entropy: string,
   cluster: any, // fix
   registry: any, //fix 
+  clusterCA: any,
+  clusterClientKey: any,
+  clusterClientCert: any,
  }
 
 export default class Service extends TerraformStack{
@@ -33,6 +37,9 @@ export default class Service extends TerraformStack{
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
+  public readonly clusterCA: string | undefined
+  public readonly clusterClientKey: string | undefined
+  public readonly clusterClientCert: string | undefined
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
@@ -41,10 +48,13 @@ export default class Service extends TerraformStack{
     this.props = props
     this.org = props?.org ?? 'cto-ai'
     this.env = props?.env ?? 'dev'
-    this.key = props?.key ?? 'do-k8s'
-    this.repo = props?.repo ?? 'sample-app'
+    this.key = props?.key ?? 'do-k8s-cdktf'
+    this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.tag = props?.tag ?? 'main'
-    this.entropy = props?.entropy ?? '01012022'
+    this.entropy = props?.entropy ?? '20220921'
+    this.clusterCA = props?.clusterCA ?? ''
+    this.clusterClientKey = props?.clusterClientKey ?? ''
+    this.clusterClientCert = props?.clusterClientCert ?? ''
 
     new DigitaloceanProvider(this, `${this.id}-provider`, {
       token: process.env.DO_TOKEN,
@@ -67,7 +77,10 @@ export default class Service extends TerraformStack{
     new KubectlProvider(this, `${this.id}-kubectl-provider`, {
       host: this.props?.cluster?.cluster?.endpoint,
       configPath: '/home/ops/.kube/config',
-      loadConfigFile: true
+      loadConfigFile: true,
+      clusterCaCertificate: this.clusterCA,
+      clientKey: this.clusterClientKey,
+      clientCertificate: this.clusterClientCert
     })
 
     let secrets = {}
@@ -85,7 +98,7 @@ export default class Service extends TerraformStack{
       //console.log('There was an error fetching secrets from the cluster vault:', e)
     }
 
-    const defaultServicesConfig = '{ "sample-app": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
+    const defaultServicesConfig = '{ "sample-expressjs-do-k8s-cdktf": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
     var servicesConfig: string;
 
     switch(this.env) { 

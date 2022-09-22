@@ -5,8 +5,8 @@ commands:
     description: "Setup Kubernetes infrastructure on DigitalOcean"
     env:
       static:
-        - STACK_TYPE=do-k8s
-        - STACK_ENTROPY=01012022
+        - STACK_TYPE=do-k8s-cdktf
+        - STACK_ENTROPY=20220921
         - TFC_ORG=cto-ai
       secrets:
         - DO_TOKEN
@@ -28,8 +28,8 @@ commands:
     description: "Deploy a service to Kubernetes infrastructure on DigitalOcean"
     env:
       static:
-        - STACK_TYPE=do-k8s
-        - STACK_ENTROPY=01012022
+        - STACK_TYPE=do-k8s-cdktf
+        - STACK_ENTROPY=20220921
         - TFC_ORG=cto-ai
       secrets:
         - DO_TOKEN
@@ -48,8 +48,8 @@ commands:
     description: "Destroy resources in your Kubernetes infrastructure on DigitalOcean"
     env:
       static:
-        - STACK_TYPE=do-k8s
-        - STACK_ENTROPY=01012022
+        - STACK_TYPE=do-k8s-cdktf
+        - STACK_ENTROPY=20220921
         - TFC_ORG=cto-ai
       secrets:
         - DO_TOKEN
@@ -66,13 +66,16 @@ commands:
         - DO_DEV_SERVICES
         - DO_STG_SERVICES
         - DO_PRD_SERVICES
+        - DO_DEV_REDIS_CONFIG
+        - DO_DEV_POSTGRES_CONFIG
+        - DO_DEV_MYSQL_CONFIG
   - name: vault:0.1.0
     run: ./node_modules/.bin/ts-node /ops/src/vault.ts
     description: "manage secrets vault"
     env:
       static:
-        - STACK_TYPE=do-k8s
-        - STACK_ENTROPY=01012022
+        - STACK_TYPE=do-k8s-cdktf
+        - STACK_ENTROPY=20220921
       secrets:
         - DO_TOKEN
       configs:
@@ -83,47 +86,7 @@ commands:
       usage: ops run vault <sub-cmd> <--key> <--value>
       arguments: 
         init: 'init the environments vault'
-        create: 'set a key in the enviroment vault'
+        create: 'set a key in the environment vault'
         list: 'list keys in the environment vault'
         remove: ' remove a specific key in the environment vault'
         destroy: 'destroy the environment vault'
-pipelines:
-  - name: sample-app-pipeline:0.1.0
-    description: build a release for deployment
-    env:
-      static:
-        - DEBIAN_FRONTEND=noninteractive
-        - STACK_TYPE=do-k8s-cdktf
-        - ORG=cto-ai
-        - REPO=sample-app
-        - REF=main
-      secrets:
-        - GITHUB_TOKEN
-        - DO_TOKEN
-    # events:
-      # - "github:workflows-sh/sample-app:pull_request.opened"
-    jobs:
-      - name: sample-app-build-job
-        description: example build step
-        packages:
-          - git
-          - unzip
-          #- python
-          - wget
-          - tar
-      #  # bind:
-      #     # - /path/to/host/repo:/ops/application
-        steps:
-          - wget https://github.com/digitalocean/doctl/releases/download/v1.79.0/doctl-1.79.0-linux-amd64.tar.gz -O doctl.tar.gaz
-          #- wget https://github.com/digitalocean/doctl/releases/download/v1.68.0/doctl-1.68.0-linux-amd64.tar.gz
-          - tar xf ./doctl.tar.gz
-          - ./doctl version
-          # - git clone https://$GITHUB_TOKEN:x-oauth-basic@github.com/$ORG/$REPO
-          # - cd $REPO && ls -asl
-          # - git fetch && git checkout $REF
-          - cd application && ls -asl
-          - ../doctl auth init -t $DO_TOKEN
-          - ../doctl registry login
-          - docker build -f Dockerfile -t registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF .
-          - docker push registry.digitalocean.com/$ORG/$REPO-$STACK_TYPE:$REF
-
