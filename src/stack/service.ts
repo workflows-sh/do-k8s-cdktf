@@ -98,7 +98,7 @@ export default class Service extends TerraformStack{
       //console.log('There was an error fetching secrets from the cluster vault:', e)
     }
 
-    const defaultServicesConfig = '{ "sample-expressjs-do-k8s-cdktf": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
+    const defaultServicesConfig = '{ "sample-expressjs-do-k8s-cdktf": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 80, "targetPort": 3000 } ], "hc_port": 3000 } }'
     var servicesConfig: string;
 
     switch(this.env) { 
@@ -136,9 +136,7 @@ export default class Service extends TerraformStack{
       }
       else
       {
-        environment = Object.assign({
-          PORT: "80",
-        }, { ...secrets })
+        environment = Object.assign({ ...secrets })
       }
     
 
