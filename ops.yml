@@ -23,7 +23,7 @@ commands:
         - DO_DEV_REDIS_CONFIG
         - DO_DEV_POSTGRES_CONFIG
         - DO_DEV_MYSQL_CONFIG
-  - name: deploy-do-k8s-cdktf:0.1.0
+  - name: deploy-do-k8s-cdktf:0.1.1
     run: ./node_modules/.bin/ts-node /ops/src/deploy.ts
     description: "Deploy a service to Kubernetes infrastructure on DigitalOcean"
     env:

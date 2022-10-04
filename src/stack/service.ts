@@ -162,6 +162,13 @@ export default class Service extends TerraformStack{
               'env': `${this.env}`
             }
           },
+          strategy: {
+            type: 'RollingUpdate',
+            rollingUpdate: {
+              maxUnavailable: 0,
+              maxSurge: 2
+            }
+          },
           template: {
             metadata: {
               labels: {
@@ -226,7 +233,6 @@ export default class Service extends TerraformStack{
         wait: true,
         yamlBody: YAML.stringify(dYaml),
         waitForRollout: true,
-        forceNew: true,
       })
 
       new Manifest(this, `${this.id}-lb-manifest`, {
