@@ -71,9 +71,9 @@ The DigitalOcean Kubernetes workflow is updated and running the latest version
 ## Getting Started 
 
 ```
-git clone https://github.com/workflows-sh/do-k8s.git
+git clone https://github.com/workflows-sh/do-k8s-cdktf.git
 
-cd do-k8s
+cd do-k8s-cdktf
 ```
 
 ---
@@ -148,9 +148,9 @@ Learn more about CTO.ai community support channels [here](https://cto.ai/communi
 
 Feel free to submit PRs or to fill issues. Every kind of help is appreciated.
 
-Kindly check our [Contributing guide](https://github.com/workflows-sh/do-k8s/blob/main/Contributing.md) on how to propose bugfixes and improvements, and submitting pull requests to the project.
+Kindly check our [Contributing guide](https://github.com/workflows-sh/do-k8s-cdktf/blob/main/Contributing.md) on how to propose bugfixes and improvements, and submitting pull requests to the project.
 
-- View issues related to this image in our GitHub repository [issue tracker](https://github.com/workflows-sh/do-k8s/issues)
+- View issues related to this image in our GitHub repository [issue tracker](https://github.com/workflows-sh/do-k8s-cdktf/issues)
 
 
 ## Learn more 

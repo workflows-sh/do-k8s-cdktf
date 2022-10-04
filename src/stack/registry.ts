@@ -29,9 +29,9 @@ export default class Registry extends TerraformStack{
     this.props = props
     this.org = props?.org ?? 'cto-ai'
     this.env = props?.env ?? 'dev'
-    this.key = props?.env ?? 'do-k8s'
-    this.repo = props?.repo ?? 'sample-app'
-    this.entropy = props?.entropy ?? '01012022'
+    this.key = props?.env ?? 'do-k8s-cdktf'
+    this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
+    this.entropy = props?.entropy ?? '20220921'
 
     new DigitaloceanProvider(this, `${this.id}-provider`, {
       token: process.env.DO_TOKEN 

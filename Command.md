@@ -1,11 +1,11 @@
-# Depoy Infrastructure from IaC using CTO.ai
+# Deploy Infrastructure from IaC using CTO.ai
 
 This repo includes a complete Digital Ocean infrastructure with Kubernetes, Container Registry, MySQL, Postgres, Redis, Load Balancers and Project Resource Management all built using CDKTF & Terraform Cloud.
 
 The repo also includes a PaaS workflow integration with CTO.ai that streamlines Developer Experience for utilizing the infrastructure, 
-which includes interative workflows that work in the CLI & Slack, but also full CI/CD & Preview Environments for all delivery.
+which includes interactive workflows that work in the CLI & Slack, but also full CI/CD & Preview Environments for all delivery.
 
-## Pre-requesites
+## Pre-requisites
 * Docker, Node (NVM) 12+ & npm installed
 * Sign up for CTO.ai, setup CTO.ai team
 * Install Ops CLI, Connect Github & Slack
@@ -27,7 +27,7 @@ You can add or remove resources changing the code of this repository or by editi
 The following are the commands already implemented in this repository and are able to run from the **CLI** or **Slack**
 
 ### Sign In
-In first place you need to sign in into the CTO.ai plataform for that you can run in your **CLI** the following command.
+In first place you need to sign in into the CTO.ai platform for that you can run in your **CLI** the following command.
 
 ```
 ops account:signin
@@ -116,7 +116,7 @@ Then all your infrastructure would be deployed/updated a the end you going to ge
 Happy Workflowing!
 ```
 ### Destroy
-This command is for destroy infrstructure or a service, you need to be **extremly careful** with this one.
+This command is for destroy infrastructure or a service, you need to be **extremely careful** with this one.
 ```
 ops run destroy
 ```
@@ -184,7 +184,7 @@ Happy Workflowing!
 ```
 
 ### Vault
-This command allows to manage secrets in Kubernetes, these secrets are inyected as environment variables to your pods in Kubernetes.
+This command allows to manage secrets in Kubernetes, these secrets are injected as environment variables to your pods in Kubernetes.
 
 * **Init**<br>
 This command option allows you to initialize the vault, and it should be executed when you create a new Kubernetes cluster.
@@ -265,7 +265,7 @@ dev-do-k8s-k8s-node-cto-ai-02022022-c8lk1   Ready    <none>   36d   v1.22.7
 ✅ test-key removed from the dev-do-k8s vault
 ```
 * **Destroy**<br>
-This vault option destroys the vault from the Kubernetes cluster, so you need to be **extremly careful** with this, because after the deletion you going to lose all you key/value for the selected environment
+This vault option destroys the vault from the Kubernetes cluster, so you need to be **extremely careful** with this, because after the deletion you going to lose all you key/value for the selected environment
 ```
 ops run . vault destroy
 ```
@@ -280,7 +280,7 @@ These parameters set the Kubernetes capacity cluster depending on the environmen
 - **DO_STG_K8S_CONFIG**
 - **DO_PRD_K8S_CONFIG**
 
-One parameter for each environment, this config parameter is a string cotaining a `json` in the following format:
+One parameter for each environment, this config parameter is a string containing a `json` in the following format:
 
 ```
 { 
@@ -292,7 +292,7 @@ One parameter for each environment, this config parameter is a string cotaining 
 }
 ```
 ### Redis, MySQL, Postgres Cluster Capacity/Scale Setup
-The same aproach can be used for other resources, like in this case a `Redis`, `MySQL` and `Postgres` clusters which is defined by the following parameters:
+The same approach can be used for other resources, like in this case a `Redis`, `MySQL` and `Postgres` clusters which is defined by the following parameters:
 
 - **DO_DEV_REDIS_CONFIG** 
 - **DO_STG_REDIS_CONFIG**
@@ -304,7 +304,7 @@ The same aproach can be used for other resources, like in this case a `Redis`, `
 - **DO_STG_POSTGRES_CONFIG**
 - **DO_PRD_POSTGRES_CONFIG**
 
-In this case the redis clustre config string has the following format.
+In this case the redis cluster config string has the following format.
 
 ```
 [
@@ -322,7 +322,7 @@ In this case the redis clustre config string has the following format.
   }
 ]
 ```
-The same aproach is used for MySQL and Postgres
+The same approach is used for MySQL and Postgres
 ```
 [
   {
@@ -346,13 +346,13 @@ The same aproach is used for MySQL and Postgres
 ]
 ```
 ### Services Parameters Definition
-To setup multiple services in the same cluster, we store all the deployment paramenters like port, replicas, etc. as `config` parameter in CTO.ai [team]( ), it would makes deployments easier. The variables as shown before would be by environment as follows.
+To setup multiple services in the same cluster, we store all the deployment parameters like port, replicas, etc. as `config` parameter in CTO.ai [team]( ), it would makes deployments easier. The variables as shown before would be by environment as follows.
 
 - **DO_DEV_SERVICES** 
 - **DO_STG_SERVICES**
 - **DO_PRD_SERVICES**
 
-It containes an array of services with parameters in `json` format.
+It contains an array of services with parameters in `json` format.
 
 ```
 { 
@@ -371,8 +371,8 @@ It containes an array of services with parameters in `json` format.
 		 }
 }
 ```
-### Maping vault secrets to environment variables in a pod
-Since in many cases you have to deploy multiple services using the same vault, you can find cases in which a varable name is the same for different services and generates conflicts, in order to solve this issue you can use `map` parameter in the json string for services, this allows you to map this variables. following is the json for a sample service.
+### Mapping vault secrets to environment variables in a pod
+Since in many cases you have to deploy multiple services using the same vault, you can find cases in which a variable name is the same for different services and generates conflicts, in order to solve this issue you can use `map` parameter in the json string for services, this allows you to map this variables. following is the json for a sample service.
 
 ```
 { 
