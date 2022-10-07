@@ -44,7 +44,7 @@ commands:
         - DO_DEV_SERVICES
         - DO_STG_SERVICES
         - DO_PRD_SERVICES
-  - name: destroy-do-k8s-cdktf:0.1.0
+  - name: destroy-do-k8s-cdktf:0.1.1
     run: ./node_modules/.bin/ts-node /ops/src/destroy.ts
     description: "Destroy resources in your Kubernetes infrastructure on DigitalOcean"
     env:
