@@ -137,7 +137,7 @@ async function run() {
   const stacks = STACKS[STACK_ENV].map(stack => {
     return {
       command: './node_modules/.bin/cdktf',
-      args: ['destroy', stack, '--auto-approve'],
+      args: ['destroy', stack, '--auto-approve', '--ignore-missing-stack-dependencies'],
       options: {
         stdio: 'inherit',
         env: {
