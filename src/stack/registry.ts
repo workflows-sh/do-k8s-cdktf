@@ -9,6 +9,7 @@ interface StackProps {
   key: string
   repo: string
   entropy: string
+  region: string
  }
 
 export default class Registry extends TerraformStack{
@@ -21,6 +22,7 @@ export default class Registry extends TerraformStack{
   public readonly key: string | undefined
   public readonly repo: string | undefined
   public readonly entropy: string | undefined
+  public readonly region: string | undefined
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
@@ -32,6 +34,7 @@ export default class Registry extends TerraformStack{
     this.key = props?.env ?? 'do-k8s-cdktf'
     this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.entropy = props?.entropy ?? '20220921'
+    this.region = props?.region ?? 'SFO3'
 
     new DigitaloceanProvider(this, `${this.id}-provider`, {
       token: process.env.DO_TOKEN 
@@ -51,7 +54,8 @@ export default class Registry extends TerraformStack{
 
     const registry = new ContainerRegistry(this, `${this.id}-registry`, {
       name: `${this.org}`,
-      subscriptionTierSlug: 'basic'
+      subscriptionTierSlug: 'basic',
+      region: `${this.region}`
     })
 
     this.registry = registry;

@@ -8,6 +8,7 @@ commands:
         - STACK_TYPE=do-k8s-cdktf
         - STACK_ENTROPY=20220921
         - TFC_ORG=cto-ai
+        - REGION=nyc3
       secrets:
         - DO_TOKEN
         - DO_SPACES_ACCESS_KEY_ID
