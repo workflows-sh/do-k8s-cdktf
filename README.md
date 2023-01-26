@@ -33,7 +33,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
     - [Destroy your Environment](#destroy-your-environment)
   - [Getting help](#getting-help)
   - [Reporting bugs and Contributing](#reporting-bugs-and-contributing)
-  - [Learn more](#learn-more)
+  - [Learn More](#learn-more)
   - [Commands](#commands)
   - [Other questions?](#other-questions)
   - [License](#license)
@@ -105,11 +105,9 @@ After creating your accounts on CTO.ai and Terraform Cloud, set up your Infrastr
 - [Build your DigitalOcean Command and setup your Kubernetes infrastructure on DigitalOcean using the CLI](https://cto.ai/docs/digital-ocean#build-and-run-your-workflow)
 
 
-
 ### Setup DigitalOcean Kubernetes Infrastructure 
 
-- [Setup your DigitalOcean Infrastructure workflow](https://cto.ai/docs/digital-ocean#setup-digitalocean-infrastructure-workflow)
-
+Next, [Setup your DigitalOcean Infrastructure workflow](https://cto.ai/docs/digital-ocean#setup-digitalocean-infrastructure-workflow)
 
 
 ### View Configuration in Terraform Workspace
@@ -143,7 +141,6 @@ Learn more about CTO.ai community support channels [here](https://cto.ai/communi
 
 - **Slack (Chat):** https://cto.ai/community
 
-
 ## Reporting bugs and Contributing 
 
 Feel free to submit PRs or to fill issues. Every kind of help is appreciated.
@@ -153,7 +150,7 @@ Kindly check our [Contributing guide](https://github.com/workflows-sh/do-k8s-cdk
 - View issues related to this image in our GitHub repository [issue tracker](https://github.com/workflows-sh/do-k8s-cdktf/issues)
 
 
-## Learn more 
+## Learn More 
 
 - Read the manual on our [website](https://cto.ai/docs/digital-ocean)
 
@@ -170,7 +167,7 @@ Check out our [FAQ](https://cto.ai/docs/faq), send us an [email](https://cto.ai/
 
 ## License 
 
-&copy; CTO.ai, Inc., 2022
+&copy; CTO.ai, Inc., 2023
 
 Distributed under MIT License (`The MIT License`).
 
