@@ -144,6 +144,11 @@ async function run() {
         Object.assign(outputs, output)
       }))
       if(STACKS_TO_SETUP.includes('main-stack')){
+      
+      console.log(`\n🔐 Configuring access to ${ux.colors.white(STACK_ENV)} cluster`)
+      await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
+        .catch(err => { throw err })
+        
       // populate our kubeconfig from doctl into the container
       await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
         .catch(err => { throw err })

@@ -6,7 +6,7 @@ const pexec = util.promisify(oexec);
 const ARGS = process.argv.slice(3);
 const OPTIONS = require('simple-argv')
 
-const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
 const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
 async function init() {
@@ -33,7 +33,7 @@ async function init() {
 
     if(!STATE) {
       console.log('')
-      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store.`)
+      await ux.print(`⚠️  Cannot find your ${ux.colors.white(STACK_ENV)} cluster state in ${ux.colors.white(STACK_TEAM)} team config store (${STATE_KEY}).`)
       await ux.print(`You may need to run the setup workflow to populate the state into your team config.`)
       console.log('')
       process.exit()

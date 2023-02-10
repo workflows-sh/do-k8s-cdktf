@@ -18,7 +18,7 @@ async function run() {
     .catch(err => console.log(err))
 
   const TFC_ORG = process.env.TFC_ORG || ''
-  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
   const defaultServicesConfig = '{ "sample-app": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
   var servicesConfig: string;

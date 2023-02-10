@@ -66,7 +66,7 @@ export default class Cluster extends TerraformStack{
 
     //TODO: make dynamic
     const region = 'nyc3';
-    const k8ver = '1.22.12-do.0';
+    //const k8ver = '1.22.12-do.0';
     const defaultK8sConfig = '{ "dropletSize": "s-1vcpu-2gb", "nodeCount": 3, "minNodes": 1, "maxNodes": 5, "autoScale": true }';
     const defaultRedisConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "6" }]';
     const defaultMySQLConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "8", "db_user": "root", "db_name": "default_db", "auth": "mysql_native_password" }]';
@@ -121,6 +121,7 @@ export default class Cluster extends TerraformStack{
     const minNodes = jsonK8sConfig.minNodes;
     const maxNodes = jsonK8sConfig.maxNodes;
     const autoScale = jsonK8sConfig.autoScale;
+    const k8ver = jsonK8sConfig.version;
 
     
     const vpc = new Vpc(this, `${this.id}-vpc`, {
