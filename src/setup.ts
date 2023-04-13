@@ -14,7 +14,7 @@ async function run() {
     .catch(e => console.log(e))
 
   const TFC_ORG = process.env.TFC_ORG || ''
-  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
   sdk.log(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
@@ -54,6 +54,7 @@ async function run() {
     // make sure doctl config is setup for the ephemeral state
     console.log(`\n🔐 Configuring access to ${ux.colors.white(STACK_ENV)} cluster`)
     await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
+      .then((out) => console.log(out.stdout))
       .catch(err => { throw err })
 
     // populate our kubeconfig from doctl into the container
@@ -129,6 +130,11 @@ async function run() {
         let output = await getWorkspaceOutputs(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
         Object.assign(outputs, output)
       }))
+
+      console.log(`\n🔐 AUTHENTICATING with DO CLUSTER: ${ux.colors.white(STACK_ENV)}`)
+      await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
+        .then((out) => console.log(out.stdout))
+        .catch(err => { throw err })
 
       // populate our kubeconfig from doctl into the container
       await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)

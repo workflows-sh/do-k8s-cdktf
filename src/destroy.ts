@@ -14,7 +14,7 @@ async function run() {
     .catch(e => console.log(e))
 
   const TFC_ORG = process.env.TFC_ORG || ''
-  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
   sdk.log(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
@@ -46,7 +46,7 @@ async function run() {
     }>({
       type: 'input',
       name: 'STACK_REPO',
-      default: 'sample-app',
+      default: 'sample-expressjs-do-k8s-cdktf',
       message: 'What is the name of the application repo?'
     }))
   }
@@ -133,11 +133,11 @@ async function run() {
   await ux.print(`👉 ${ux.colors.green('So...')} If this destroy fails, you may have to clean up resources manuallyi & run again.`)
   console.log('')
 
-  // then we build a command to deploy each stack
+  // then we build a command to destroy each stack
   const stacks = STACKS[STACK_ENV].map(stack => {
     return {
       command: './node_modules/.bin/cdktf',
-      args: ['destroy', stack, '--auto-approve'],
+      args: ['destroy', stack, '--auto-approve', '--ignore-missing-stack-dependencies'],
       options: {
         stdio: 'inherit',
         env: {

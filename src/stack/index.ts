@@ -10,6 +10,7 @@ interface StackProps {
   tag: string
   key: string
   entropy: string
+  region: string
 }
 
 export class Stack {
@@ -20,14 +21,16 @@ export class Stack {
   public readonly tag: string
   public readonly key: string
   public readonly entropy: string
+  public readonly region: string
 
   constructor(props?: StackProps) {
     this.org = props?.org ?? 'cto-ai'
     this.env = props?.env ?? 'dev'
-    this.key = props?.key ?? 'do-k8s'
-    this.repo = props?.repo ?? 'sample-app'
+    this.key = props?.key ?? 'do-k8s-cdktf'
+    this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.tag = props?.tag ?? 'main'
-    this.entropy = props?.entropy ?? '01012022'
+    this.entropy = props?.entropy ?? '20220921'
+    this.region = props?.region ?? 'SFO3'
   }
 
   async initialize() {
@@ -39,7 +42,8 @@ export class Stack {
       env: this.env,
       key: this.key,
       repo: this.repo,
-      entropy: this.entropy
+      entropy: this.entropy,
+      region: this.region
     })
     await registry.initialize()
 
@@ -62,7 +66,7 @@ export class Stack {
       tag: this.tag,
       entropy: this.entropy,
       registry: registry,
-      cluster: cluster,
+      cluster: cluster
     })
     await service.initialize()
 

@@ -18,9 +18,9 @@ async function run() {
     .catch(err => console.log(err))
 
   const TFC_ORG = process.env.TFC_ORG || ''
-  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+  const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
-  const defaultServicesConfig = '{ "sample-app": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
+  const defaultServicesConfig = '{ "sample-expressjs-do-k8s-cdktf": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
   var servicesConfig: string;
   
 
@@ -106,7 +106,11 @@ async function run() {
 
     // populate our kubeconfig from doctl into the container
     await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+      .then(out => console.log(out.stdout))
       .catch(err => { throw err })
+
+    // await pexec(`doctl kubernetes cluster kubeconfig save ${outputs.cluster.name} -t ${process.env.DO_TOKEN}`)
+    //   .catch(err => { throw err })
 
     // confirm we can connect to the cluster to see nodes
     console.log(`\n⚡️ Confirming connection to ${ux.colors.white(outputs.cluster.name)}:`)
@@ -115,7 +119,7 @@ async function run() {
       .catch(err => console.log(err))
 
   } catch(e) {
-    console.log(`⚠️  Could not boostrap ${ux.colors.white(STACK_ENV)} state. Proceeding with setup...`)
+    console.log(`⚠️  Could not bootstrap ${ux.colors.white(STACK_ENV)} state. Proceeding with setup...`)
   }
 
   // sync stacks>workspaces for separated imperative state
@@ -146,12 +150,12 @@ async function run() {
   const stacks = STACKS[STACK_ENV].map(stack => {
     return {
       command: './node_modules/.bin/cdktf',
-      args: ['deploy', stack, '--auto-approve'],
+      args: ['deploy', '--ignore-missing-stack-dependencies', '--auto-approve', stack],
       options: {
         stdio: 'inherit',
         env: {
           ...process.env,
-          CDKTF_LOG_LEVEL: 'fatal',
+          CDKTF_LOG_LEVEL: 'error',
           STACK_ENV: STACK_ENV,
           STACK_TYPE: STACK_TYPE,
           STACK_REPO: STACK_REPO,

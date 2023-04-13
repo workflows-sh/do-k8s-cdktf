@@ -1,6 +1,6 @@
 import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
-import { TerraformStack, TerraformOutput } from 'cdktf'
+import { TerraformStack, TerraformOutput, Fn } from 'cdktf'
 import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
 import { Project, ProjectResources, Vpc, KubernetesCluster, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
 
@@ -28,6 +28,10 @@ export default class Cluster extends TerraformStack{
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
+  // public clusterCA: string | undefined
+  // public clusterClientKey: string | undefined
+  // public clusterClientCert: string | undefined
+
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id)
@@ -36,10 +40,10 @@ export default class Cluster extends TerraformStack{
     this.props = props
     this.org = props?.org ?? 'cto-ai'
     this.env = props?.env ?? 'dev'
-    this.key = props?.key ?? 'do-k8s'
-    this.repo = props?.repo ?? 'sample-app'
+    this.key = props?.key ?? 'do-k8s-cdktf'
+    this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.tag = props?.tag ?? 'main'
-    this.entropy = props?.entropy ?? '01012022'
+    this.entropy = props?.entropy ?? '20220921'
 
     new DigitaloceanProvider(this, `${this.id}-provider`, {
       token: process.env.DO_TOKEN,
@@ -61,11 +65,11 @@ export default class Cluster extends TerraformStack{
 
     //TODO: make dynamic
     const region = 'nyc3';
-    const k8ver = '1.22.7-do.0';
+    const k8ver = '1.24.4-do.0'; // MUST BE UPDATED REGULARLY
     const defaultK8sConfig = '{ "dropletSize": "s-1vcpu-2gb", "nodeCount": 3, "minNodes": 1, "maxNodes": 5, "autoScale": true }';
     const defaultRedisConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "6" }]';
-    const defaultMySQLConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "8", "db_user": "root", "db_name": "default_db", "auth": "mysql_native_password" }]';
-    const defaultPostgresSQLConfig = '[{ "name": "default", "dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "8", "db_user": "root", "db_name": "default_db" }]';
+    const defaultMySQLConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "8", "db_user": "do_root", "db_name": "default_db", "auth": "mysql_native_password" }]'; // USER MUST BE DIFFERENT
+    const defaultPostgresSQLConfig = '[{ "name": "default", "dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "14", "db_user": "do_root", "db_name": "default_dbcdk" }]'; // USER MUST BE DIFFERENT
     var k8sConfig: string;
     var redisConfig: string;
     var mysqlConfig: string;
@@ -134,6 +138,16 @@ export default class Cluster extends TerraformStack{
         autoScale: autoScale
       },
     });
+
+    // this.clusterCA = Fn.base64decode(cluster.kubeConfig[0].clusterCaCertificate)
+    // this.clusterClientKey = Fn.base64decode(cluster.kubeConfig[0].clientKey)
+    // this.clusterClientCert = Fn.base64decode(cluster.kubeConfig[0].clientCertificate)
+
+    // debug!!!!!!!!!!!!!!!!!!
+    // console.log("THE FOLLOWING ARE CLUSTERCA, CLUSTERCLIENTKEY and CLUSTERCLIENTCERT:\n")
+    // console.log(this.clusterCA)
+    // console.log(this.clusterClientKey)
+    // console.log(this.clusterClientCert)
 
     var pgArr : DatabaseCluster[]; 
     pgArr = [];

@@ -7,7 +7,7 @@ const slice = process.argv[2] == '.' ? 3 : 2
 const ARGS = process.argv.slice(slice);
 const OPTIONS = require('simple-argv')
 
-const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
+const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
 const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
 async function init() {
