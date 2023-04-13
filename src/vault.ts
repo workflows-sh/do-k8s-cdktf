@@ -3,7 +3,8 @@ import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
 const pexec = util.promisify(oexec);
 
-const ARGS = process.argv.slice(3);
+const slice = process.argv[2] == '.' ? 3 : 2
+const ARGS = process.argv.slice(slice);
 const OPTIONS = require('simple-argv')
 
 const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s';
@@ -567,10 +568,10 @@ switch(ARGS[0]) {
     console.log("")
     console.log("Available subcommands:")
     console.log("   ops run vault init")
-    console.log("   ops run vault set")
+    console.log("   ops run vault set -k key -v value")
     console.log("   ops run vault bulk")
     console.log("   ops run vault ls")
-    console.log("   ops run vault rm")
+    console.log("   ops run vault rm -k key")
     console.log("   ops run vault destroy")
     console.log("")
   break;
