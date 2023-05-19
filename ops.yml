@@ -101,7 +101,7 @@ commands:
       usage: ops run vault <sub-cmd> <--key> <--value>
       arguments: 
         init: 'init the environments vault'
-        create: 'set a key in the environment vault'
-        list: 'list keys in the environment vault'
-        remove: ' remove a specific key in the environment vault'
+        set: 'set a key in the environment vault'
+        ls: 'list keys in the environment vault'
+        rm: ' remove a specific key in the environment vault'
         destroy: 'destroy the environment vault'
