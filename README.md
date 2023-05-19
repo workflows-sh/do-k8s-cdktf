@@ -25,7 +25,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
     - [Create API keys on DigitalOcean](#create-api-keys-on-digitalocean)
     - [Create an Account on Terraform Cloud](#create-an-account-on-terraform-cloud)
   - [Usage](#usage)
-    - [Build your Workflow](#build-your-workflow)
+    - [Build Pipelines for your DigitalOcean Infrastructure](#build-pipelines-for-your-digitalocean-infrastructure)
     - [Setup DigitalOcean Kubernetes Infrastructure](#setup-digitalocean-kubernetes-infrastructure)
     - [View Configuration in Terraform Workspace](#view-configuration-in-terraform-workspace)
     - [Run the Deploy Workflow](#run-the-deploy-workflow)
@@ -100,38 +100,43 @@ Before you can deploy this Workflow, you need to [Setup your account on CTO.ai](
 
 After creating your accounts on CTO.ai and Terraform Cloud, set up your Infrastructure. 
 
-### Build your Workflow
+### Build Pipelines for your DigitalOcean Infrastructure
 
-- [Build your DigitalOcean Command and setup your Kubernetes infrastructure on DigitalOcean using the CLI](https://cto.ai/docs/digital-ocean#build-and-run-your-workflow)
+In your application directory, build your DigitalOcean workflow, the Docker image from your Dockerfile, and your `ops.yml` file located in the specified path you created in your source directory using the `ops build .` command.
 
-
+- [Check out the documentation to learn more on building pipelines](https://cto.ai/docs/digital-ocean#build--digitalocean-workflow)
+- 
 
 ### Setup DigitalOcean Kubernetes Infrastructure 
 
-- [Setup your DigitalOcean Infrastructure workflow](https://cto.ai/docs/digital-ocean#setup-digitalocean-infrastructure-workflow)
+Next, set up your DigitalOcean Kubernetes infrastructure to build, and run your DOKS workflow using the `ops run .`  and select `setup kubernetes infrastructure on DigitalOcean` the command will provision your DigitalOcean stack using CDK and Terraform.
 
+- [Check out the documentation to learn more](https://cto.ai/docs/digital-ocean#setup-digitalocean-infrastructure-workflow)
 
 
 ### View Configuration in Terraform Workspace
 
-- Back in your Terraform Workspace you will see your [DigitalOcean workflow created in your Terraform workspace](https://cto.ai/docs/digital-ocean#view-configurations-in-terraform-workspace)
+- Back in your Terraform Workspace you will see your [DigitalOcean workflow created in your Terraform workspace](https://cto.ai/docs/digital-ocean#view-configurations-in-terraform-workspace) As it is synchronizing the state to Terraform Cloud and your workflow grabs the output and synchronizes it in your developer control plane. 
 
 
 ### Run the Deploy Workflow
 
-- Run the deploy Workflow, [this command will deploy your DigitalOcean Kubernetes Workflow to your environment](https://cto.ai/docs/digital-ocean#run-the-deploy-workflow)
+Next, deploy your changes to your environment using `ops run -b .`. This command will deploy your DigitalOcean Kubernetes CDKTF workflow to your managed Kubernetes environment on DigitalOcean where you'll be able to input your `environment name`, `application repo` and `branch`
+
+- [Learn more about running the deploy workflow](https://cto.ai/docs/digital-ocean#run-the-deploy-workflow)
 
 
 ### View your Kubernetes Services 
 
-You can view your [DigitalOcean Kubernetes Services in any Kubernetes tool like Lens to see all running services](https://cto.ai/docs/digital-ocean#kubernetes-services-are-running)
+Back in your service application, [you can view all running services and nodes using a Kubernetes tool like Lens](https://cto.ai/docs/digital-ocean#kubernetes-services-are-running)
 
 ---
 
 ### Destroy your Environment 
 
-After configuring your DigitalOcean Kubernetes Workflow, [you can destroy your environment and services that are running](https://cto.ai/docs/digital-ocean#destroy-your-environment)
+After configuring your DigitalOcean Kubernetes Workflow, you can destroy your environment and services that are running using the `ops run .` command and select `destroy an environment`
 
+- [Learn more about destroying an environment](https://cto.ai/docs/digital-ocean#destroy-your-environment)
 
 ---
 
@@ -170,7 +175,7 @@ Check out our [FAQ](https://cto.ai/docs/faq), send us an [email](https://cto.ai/
 
 ## License 
 
-&copy; CTO.ai, Inc., 2022
+&copy; CTO.ai, Inc., 2023
 
 Distributed under MIT License (`The MIT License`).
 
