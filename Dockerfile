@@ -1,10 +1,10 @@
 ############################
 # Final container
 ############################
-FROM registry.cto.ai/official_images/node:2-12.13.1-stretch-slim
+FROM registry.cto.ai/official_images/node:2.7.4-12.13.1-buster-slim
 RUN mkdir -p /usr/local/nvm
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 16.17.0
+ENV NODE_VERSION 16.19.1
 
 RUN apt-get update && \
     apt-get install -y \
@@ -13,7 +13,6 @@ RUN apt-get update && \
         python3-setuptools \
         groff \
         less \
-        mysql-client \
         unzip \
         wget \
         jq \
