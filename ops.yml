@@ -1,6 +1,6 @@
 version: "1"
 commands:
-  - name: setup-do-k8s-cdktf:0.1.0
+  - name: setup-do-k8s-cdktf:0.1.2
     run: ./node_modules/.bin/ts-node /ops/src/setup.ts
     description: "Setup Kubernetes infrastructure on DigitalOcean"
     env:
@@ -24,7 +24,7 @@ commands:
         - DO_DEV_REDIS_CONFIG
         - DO_DEV_POSTGRES_CONFIG
         - DO_DEV_MYSQL_CONFIG
-  - name: deploy-do-k8s-cdktf:0.1.1
+  - name: deploy-do-k8s-cdktf:0.1.3
     run: ./node_modules/.bin/ts-node /ops/src/deploy.ts
     description: "Deploy a service to Kubernetes infrastructure on DigitalOcean"
     env:
@@ -44,7 +44,7 @@ commands:
         - DO_DEV_SERVICES
         - DO_STG_SERVICES
         - DO_PRD_SERVICES
-  - name: destroy-do-k8s-cdktf:0.1.1
+  - name: destroy-do-k8s-cdktf:0.1.3
     run: ./node_modules/.bin/ts-node /ops/src/destroy.ts
     description: "Destroy resources in your Kubernetes infrastructure on DigitalOcean"
     env:
@@ -70,7 +70,7 @@ commands:
         - DO_DEV_REDIS_CONFIG
         - DO_DEV_POSTGRES_CONFIG
         - DO_DEV_MYSQL_CONFIG
-  - name: vault-do-k8s-cdktf:0.1.0
+  - name: vault-do-k8s-cdktf:0.1.3
     run: ./node_modules/.bin/ts-node /ops/src/vault.ts
     description: "manage secrets vault"
     env:
