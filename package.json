@@ -23,7 +23,7 @@
     "cdktf-cli": "^0.12.2",
     "constructs": "^10.1.109",
     "run": "^1.4.0",
-    "simple-argv": "^2.0.4",
+    "yargs": "^17.7.2",
     "spawn-series": "^0.2.3",
     "string-type-convertor": "^1.2.0",
     "yaml": "^2.1.1"

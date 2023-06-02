@@ -80,7 +80,7 @@ commands:
         - DO_DEV_POSTGRES_CONFIG
         - DO_DEV_MYSQL_CONFIG
     # manage secrets vault for your doks workflow
-  - name: vault-do-k8s-cdktf:0.1.3
+  - name: vault-do-k8s-cdktf:0.1.4
     run: ./node_modules/.bin/ts-node /ops/src/vault.ts
     description: "manage secrets vault"
     env:

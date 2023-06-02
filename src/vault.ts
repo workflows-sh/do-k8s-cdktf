@@ -5,7 +5,9 @@ const pexec = util.promisify(oexec);
 
 const slice = process.argv[2] == '.' ? 3 : 2
 const ARGS = process.argv.slice(slice);
-const OPTIONS = require('simple-argv')
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+const OPTIONS = yargs(hideBin(process.argv)).argv
 
 const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
 const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
