@@ -50,7 +50,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 
 ## DigitalOcean Infrastructure
 
-These workflows allows to manage Crystal Commerce Infrastructure over DigitalOcean, the resources that are defined for be managed are the following.
+The following workflows allow Infrastructure Resource Management over DigitalOcean:
 * Docker Registry
 * Kubernetes Cluster
 * MySQL Databases
