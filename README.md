@@ -50,7 +50,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 
 ## DigitalOcean Infrastructure
 
-The following workflows allow Infrastructure Resource Management over DigitalOcean:
+This repo includes the following resrouces:
 * Docker Registry
 * Kubernetes Cluster
 * MySQL Databases
