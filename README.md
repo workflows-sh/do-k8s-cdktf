@@ -50,7 +50,7 @@ which includes interative workflows that work in the CLI & Slack, but also full 
 
 ## DigitalOcean Infrastructure
 
-This repo includes the following resrouces:
+This repo includes the following resources:
 * Docker Registry
 * Kubernetes Cluster
 * MySQL Databases
