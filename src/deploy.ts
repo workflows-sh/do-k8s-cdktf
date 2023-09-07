@@ -1,7 +1,8 @@
 import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
 import { exec as oexec } from 'child_process';
-import { createWorkspace, getWorkspaceOutputs } from './helpers/tfc/index'
+import { createWorkspace } from './helpers/tfc/index'
+import { stackEnvPrompt, stackRepoPrompt, stackTagPrompt } from './prompts';
 const pexec = util.promisify(oexec);
 const spawn = require('spawn-series');
 
@@ -20,61 +21,13 @@ async function run() {
   const TFC_ORG = process.env.TFC_ORG || ''
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
-  const defaultServicesConfig = '{ "sample-expressjs-do-k8s-cdktf": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 3000, "targetPort": 3000 } ], "hc_port": 3000 } }'
-  var servicesConfig: string;
-  
+
 
   await ux.print(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
 
-  const { STACK_ENV } = await ux.prompt<{
-    STACK_ENV: string
-  }>({
-      type: 'input',
-      name: 'STACK_ENV',
-      default: 'dev',
-      message: 'What is the name of the environment?'
-    })
-
-  switch(STACK_ENV) { 
-    case 'dev': { 
-      servicesConfig = process.env.DO_DEV_SERVICES || defaultServicesConfig;
-      break; 
-    } 
-    case 'stg': { 
-      servicesConfig = process.env.DO_STG_SERVICES || defaultServicesConfig;
-      break; 
-    }
-    case 'prd': { 
-      servicesConfig = process.env.DO_PRD_SERVICES || defaultServicesConfig;
-      break; 
-    } 
-    default: { 
-      servicesConfig = defaultServicesConfig;
-      break; 
-    } 
-  }
-  
-  const jsonServicesConfig = JSON.parse(servicesConfig);
-  const servicesList = Object.keys(jsonServicesConfig);
-  
-  const { STACK_REPO } = await ux.prompt<{
-    STACK_REPO: string
-  }>({
-      type: 'list',
-      name: 'STACK_REPO',
-      choices: servicesList,
-      message: 'What is the name of the application repo?'
-    })
-
-
-  const { STACK_TAG } = await ux.prompt<{
-    STACK_TAG: string
-  }>({
-      type: 'input',
-      name: 'STACK_TAG',
-      default: 'main',
-      message: 'What is the name of the tag or branch?'
-    })
+  const { STACK_ENV } = await stackEnvPrompt()
+  const { STACK_REPO } = await stackRepoPrompt()
+  const { STACK_TAG } = await stackTagPrompt()
 
   const STACKS:any = {
     'dev': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
