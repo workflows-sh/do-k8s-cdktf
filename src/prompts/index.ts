@@ -1,5 +1,6 @@
 import {Answers, Questions, ux} from '@cto.ai/sdk';
 
+// TODO: Support choices as an arg for when 'all' is not an option i.e. vault workflow
 export function stackEnvPrompt () {
     return ux.prompt < {
         STACK_ENV: string
