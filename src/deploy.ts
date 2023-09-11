@@ -1,6 +1,6 @@
 import util from 'util';
 import { ux, sdk } from '@cto.ai/sdk';
-import { exec as oexec } from 'child_process';
+import { exec as oexec, execSync } from 'child_process';
 import { createWorkspace } from './helpers/tfc/index'
 import { stackEnvPrompt, stackRepoPrompt, stackTagPrompt } from './prompts';
 const pexec = util.promisify(oexec);
@@ -12,7 +12,7 @@ async function run() {
   // TODO @kc refactor this to .terraformrc to avoid conflict 
   const tfrc = '/home/ops/.terraform.d/credentials.tfrc.json'
   await pexec(`sed -i 's/{{token}}/${process.env.TFC_TOKEN}/g' ${tfrc}`)
-    .catch(e => console.log(e))
+    .catch(err => console.log(err))
 
   // make sure doctl config is setup for the ephemeral state
   await pexec(`doctl auth init -t ${process.env.DO_TOKEN}`)
@@ -22,13 +22,58 @@ async function run() {
   const STACK_TYPE = process.env.STACK_TYPE || 'do-k8s-cdktf';
   const STACK_TEAM = process.env.OPS_TEAM_NAME || 'private'
 
-
-  await ux.print(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)} team...\n`)
-
   const { STACK_ENV } = await stackEnvPrompt()
   const { STACK_REPO } = await stackRepoPrompt()
-  const { STACK_TAG } = await stackTagPrompt()
 
+  const regRepoName: string = `${STACK_REPO}-${STACK_TYPE}`
+
+  await ux.print(`\n🛠 Loading the latest tags for ${ux.colors.green(STACK_TYPE)} environment and ${ux.colors.green(STACK_REPO)} service...`)
+
+  // TODO: Write function to return currently running image name and display it to the user.
+  //
+  // async function retrieveCurrentlyDeployedImage(env: string, service: string): Promise<string> {
+  //   return ""
+  // }
+  // const currentImage = await retrieveCurrentlyDeployedImage(STACK_ENV, STACK_REPO)
+  // await ux.print(`\n🖼️  Currently deployed image - ${ux.colors.green(currentImage)}\n`)
+
+  const regImages: string[] = JSON.parse(execSync(
+    `doctl registry repository list-tags ${regRepoName} --output json --format Tag `,
+    {
+      env: process.env
+    }
+  ).toString().trim()).filter(image => 'tag' in image ).map(image => { return image.tag}) || []
+
+  const defaultImage = regImages.length ? regImages[0] : undefined
+  const imageTagLimit = 20
+  let { STACK_TAG }: any = ''
+
+  const { STACK_TAG_CUSTOM } = await ux.prompt<{
+    STACK_TAG_CUSTOM: boolean
+  }>({
+    type: 'confirm',
+    name: 'STACK_TAG_CUSTOM',
+    default: false,
+    message: 'Do you want to deploy a custom image?'
+  });
+
+  if (STACK_TAG_CUSTOM){
+    ({ STACK_TAG } = await ux.prompt<{
+      STACK_TAG: string
+    }>({
+      type: 'input',
+      name: 'STACK_TAG',
+      message: 'What is the name of the tag or branch?',
+      allowEmpty: false
+    }))
+  } else {
+    ({ STACK_TAG } = await stackTagPrompt(
+      regImages.slice(0, regImages.length < imageTagLimit ? regImages.length : imageTagLimit),
+      defaultImage
+    ))
+  }
+
+  await ux.print(`\n🛠 Loading the ${ux.colors.white(STACK_TYPE)} stack for the ${ux.colors.white(STACK_TEAM)}...\n`)
   const STACKS:any = {
     'dev': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],
     'stg': [`${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`],

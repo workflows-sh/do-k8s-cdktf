@@ -19,8 +19,8 @@ export function stackRepoPrompt () {
     } > ({
         type: 'list',
         name: 'STACK_REPO',
-        choices: ['sample-expressjs-do-k8s-cdktf'],
-        default: 'sample-expressjs-do-k8s-cdktf',
+        choices: ['sample-expressjs'],
+        default: 'sample-expressjs',
         message: 'What is the name of the application repo?',
     })
 }
