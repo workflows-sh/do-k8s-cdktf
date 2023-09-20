@@ -25,7 +25,6 @@ async function run() {
   const { STACK_ENV } = await stackEnvPrompt()
   const { STACK_REPO } = await stackRepoPrompt()
 
-  const regRepoName: string = `${STACK_REPO}-${STACK_TYPE}`
 
   await ux.print(`\n🛠 Loading the latest tags for ${ux.colors.green(STACK_TYPE)} environment and ${ux.colors.green(STACK_REPO)} service...`)
 
@@ -38,7 +37,7 @@ async function run() {
   // await ux.print(`\n🖼️  Currently deployed image - ${ux.colors.green(currentImage)}\n`)
 
   const regImages: string[] = JSON.parse(execSync(
-    `doctl registry repository list-tags ${regRepoName} --output json --format Tag `,
+    `doctl registry repository list-tags ${STACK_REPO} --output json --format Tag `,
     {
       env: process.env
     }
