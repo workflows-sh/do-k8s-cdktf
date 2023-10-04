@@ -26,7 +26,7 @@
     "yargs": "^17.7.2",
     "spawn-series": "^0.2.3",
     "string-type-convertor": "^1.2.0",
-    "yaml": "^2.1.1"
+    "yaml": "^2.2.2"
   },
   "devDependencies": {
     "@types/node": "^18.7.18",
