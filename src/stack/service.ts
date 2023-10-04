@@ -1,8 +1,8 @@
-import { Fn, RemoteBackend } from 'cdktf';
+import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
-import { TerraformStack, TerraformOutput } from 'cdktf'
-import { DigitaloceanProvider, SpacesBucket } from '../../.gen/providers/digitalocean';
-import { KubectlProvider } from '../../.gen/providers/kubectl/kubectl-provider'
+import { TerraformStack } from 'cdktf'
+import { DigitaloceanProvider } from '../../.gen/providers/digitalocean/provider';
+import { KubectlProvider } from '../../.gen/providers/kubectl/provider'
 import { Manifest } from '../../.gen/providers/kubectl/manifest'
 
 import YAML from 'yaml';

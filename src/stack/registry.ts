@@ -1,7 +1,8 @@
 import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput } from 'cdktf'
-import { DigitaloceanProvider, ContainerRegistry } from '../../.gen/providers/digitalocean';
+import { DigitaloceanProvider } from '../../.gen/providers/digitalocean/provider';
+import { ContainerRegistry } from '../../.gen/providers/digitalocean/container-registry';
 
 interface StackProps {
   org: string
