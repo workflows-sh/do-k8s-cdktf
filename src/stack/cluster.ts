@@ -1,8 +1,14 @@
 import { RemoteBackend } from 'cdktf';
 import { Construct } from 'constructs';
 import { TerraformStack, TerraformOutput, Fn } from 'cdktf'
-import { DigitaloceanProvider } from '../../.gen/providers/digitalocean'
-import { Project, ProjectResources, Vpc, KubernetesCluster, DatabaseCluster, DatabaseUser, DatabaseDb } from '../../.gen/providers/digitalocean';
+import { DigitaloceanProvider } from '../../.gen/providers/digitalocean/provider'
+import { Project } from '../../.gen/providers/digitalocean/project';
+import { ProjectResources } from '../../.gen/providers/digitalocean/project-resources';
+import { Vpc } from '../../.gen/providers/digitalocean/vpc';
+import { KubernetesCluster } from '../../.gen/providers/digitalocean/kubernetes-cluster';
+import { DatabaseCluster } from '../../.gen/providers/digitalocean/database-cluster';
+import { DatabaseUser } from '../../.gen/providers/digitalocean/database-user';
+import { DatabaseDb } from '../../.gen/providers/digitalocean/database-db';
 
 interface StackProps {
   org: string
