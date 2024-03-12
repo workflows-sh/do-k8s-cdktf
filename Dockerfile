@@ -24,12 +24,10 @@ RUN . $NVM_DIR/nvm.sh \
     && nvm alias default $NODE_VERSION \
     && nvm use default
 
-# RUN wget https://releases.hashicorp.com/terraform/1.3.0/terraform_1.3.0_linux_386.zip -O terraform.zip
 RUN wget https://releases.hashicorp.com/terraform/1.7.4/terraform_1.7.4_linux_amd64.zip -O terraform.zip
 RUN unzip terraform.zip
 RUN mv terraform /usr/local/bin/
 
-# RUN wget https://github.com/digitalocean/doctl/releases/download/v1.66.0/doctl-1.66.0-linux-amd64.tar.gz
 RUN wget https://github.com/digitalocean/doctl/releases/download/v1.101.0/doctl-1.101.0-linux-amd64.tar.gz -O doctl.tar.gz
 RUN tar xf ./doctl.tar.gz
 RUN mv ./doctl /usr/local/bin
@@ -51,7 +49,6 @@ ADD --chown=ops:9999 . .
 
 RUN npm run get && npm run synth
 
-# RUN mkdir cdktf.out && chown ops:9999 cdktf.out
 RUN chown ops:9999 cdktf.out
 ADD --chown=ops:9999 ./credentials.tfrc.json /home/ops/.terraform.d/credentials.tfrc.json
 ADD --chown=ops:9999 ./.terraform.d /home/ops/.terraform.d
