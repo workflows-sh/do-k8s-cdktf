@@ -71,8 +71,8 @@ export default class Cluster extends TerraformStack{
 
     //TODO: make dynamic
     const region = 'nyc3';
-    const k8ver = '1.24.4-do.0'; // MUST BE UPDATED REGULARLY
-    const defaultK8sConfig = '{ "dropletSize": "s-1vcpu-2gb", "nodeCount": 3, "minNodes": 1, "maxNodes": 5, "autoScale": true }';
+    const k8ver = '1.29.1-do.0'; // MUST BE UPDATED REGULARLY
+    const defaultK8sConfig = '{ "dropletSize": "s-1vcpu-2gb", "nodeCount": 2, "minNodes": 1, "maxNodes": 5, "autoScale": true }';
     const defaultRedisConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "6" }]';
     const defaultMySQLConfig = '[{ "name":"default","dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "8", "db_user": "do_root", "db_name": "default_db", "auth": "mysql_native_password" }]'; // USER MUST BE DIFFERENT
     const defaultPostgresSQLConfig = '[{ "name": "default", "dropletSize": "db-s-1vcpu-1gb", "nodeCount": 1, "version": "14", "db_user": "do_root", "db_name": "default_dbcdk" }]'; // USER MUST BE DIFFERENT
