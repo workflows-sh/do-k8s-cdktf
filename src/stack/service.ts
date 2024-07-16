@@ -17,6 +17,7 @@ interface StackProps {
   org: string
   env: string
   key: string
+  repoOrg?: string
   repo: string
   tag: string
   entropy: string,
@@ -25,15 +26,16 @@ interface StackProps {
   // clusterCA: any,
   // clusterClientKey: any,
   // clusterClientCert: any,
- }
+}
 
-export default class Service extends TerraformStack{
+export default class Service extends TerraformStack {
 
   public readonly props: StackProps | undefined
   public readonly id: string | undefined
   public readonly org: string | undefined
   public readonly env: string | undefined
   public readonly key: string | undefined
+  public readonly repoOrg: string | undefined
   public readonly repo: string | undefined
   public readonly tag: string | undefined
   public readonly entropy: string | undefined
@@ -49,6 +51,7 @@ export default class Service extends TerraformStack{
     this.org = props?.org ?? 'cto-ai'
     this.env = props?.env ?? 'dev'
     this.key = props?.key ?? 'do-k8s-cdktf'
+    this.repoOrg = props?.repoOrg ?? 'workflows-sh'
     this.repo = props?.repo ?? 'sample-expressjs-do-k8s-cdktf'
     this.tag = props?.tag ?? 'main'
     this.entropy = props?.entropy ?? '20220921'
@@ -84,66 +87,63 @@ export default class Service extends TerraformStack{
     })
 
     let secrets = {}
-    const decode = (str: string):string => Buffer.from(str, 'base64').toString('binary');
+    const decode = (str: string): string => Buffer.from(str, 'base64').toString('binary');
 
     try {
       const VAULT_KEY = `${this.env}-${this.key}`
-      const vault = await pexec(`kubectl get secret ${VAULT_KEY} -o json`) 
-      const data = JSON.parse(vault.stdout); 
-      for(let index of Object.keys(data.data)){
-          let e = decode(data.data[index])
-          secrets[index] = e
+      const vault = await pexec(`kubectl get secret ${VAULT_KEY} -o json`)
+      const data = JSON.parse(vault.stdout);
+      for (let index of Object.keys(data.data)) {
+        let e = decode(data.data[index])
+        secrets[index] = e
       }
-    } catch(e) {
+    } catch (e) {
       //console.log('There was an error fetching secrets from the cluster vault:', e)
     }
 
     const defaultServicesConfig = '{ "sample-expressjs-do-k8s-cdktf": { "replicas" : 2, "ports" : [ { "containerPort" : 3000 } ], "lb_ports" : [ { "protocol": "TCP", "port": 80, "targetPort": 3000 } ], "hc_port": 3000 } }'
     var servicesConfig: string;
 
-    switch(this.env) { 
-      case 'dev': { 
+    switch (this.env) {
+      case 'dev': {
         servicesConfig = process.env.DO_DEV_SERVICES || defaultServicesConfig;
-        break; 
-      } 
-      case 'stg': { 
-        servicesConfig = process.env.DO_STG_SERVICES || defaultServicesConfig;
-        break; 
+        break;
       }
-      case 'prd': { 
+      case 'stg': {
+        servicesConfig = process.env.DO_STG_SERVICES || defaultServicesConfig;
+        break;
+      }
+      case 'prd': {
         servicesConfig = process.env.DO_PRD_SERVICES || defaultServicesConfig;
-        break; 
-      } 
-      default: { 
+        break;
+      }
+      default: {
         servicesConfig = defaultServicesConfig;
-        break; 
-      } 
+        break;
+      }
     }
 
     const jsonServicesConfig = JSON.parse(servicesConfig);
     const serviceConfig = jsonServicesConfig[`${this.repo}`]
     var environment: object;
 
-    if(serviceConfig !== undefined)
-    {
-      if(serviceConfig.hasOwnProperty('map'))
-      {
-        const serviceMapConfig =  serviceConfig['map']
-        Object.keys(serviceMapConfig).map(function(key) {
+    if (serviceConfig !== undefined) {
+      if (serviceConfig.hasOwnProperty('map')) {
+        const serviceMapConfig = serviceConfig['map']
+        Object.keys(serviceMapConfig).map(function (key) {
           serviceMapConfig[key] = secrets[serviceMapConfig[key]];
         });
         environment = serviceMapConfig
       }
-      else
-      {
+      else {
         environment = Object.assign({ ...secrets })
       }
-    
+
 
       const env = Object.keys(environment).map((e) => {
         return { name: e, value: environment[e] }
       })
-     
+
       const dYaml = {
         apiVersion: 'apps/v1',
         kind: 'Deployment',
@@ -151,7 +151,10 @@ export default class Service extends TerraformStack{
           name: `${this.env}-${this.repo}`,
           labels: {
             'service': `srv-${this.repo}`,
-            'env': `${this.env}`
+            'env': `${this.env}`,
+            'dora-org': this.repoOrg,
+            'dora-repo': this.repo,
+            'dora-branch': this.tag,
           },
         },
         spec: {
@@ -191,8 +194,7 @@ export default class Service extends TerraformStack{
       };
 
       var lbAnnotations: any
-      if (serviceConfig['sticky_sessions'] == "yes")
-      {
+      if (serviceConfig['sticky_sessions'] == "yes") {
         lbAnnotations = {
           'service.beta.kubernetes.io/do-loadbalancer-protocol': 'http',
           'service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-type': 'cookies',
@@ -201,8 +203,7 @@ export default class Service extends TerraformStack{
           'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
         }
       }
-      else
-      {
+      else {
         lbAnnotations = {
           'service.beta.kubernetes.io/do-loadbalancer-healthcheck-port': `${serviceConfig['hc_port']}`
         }

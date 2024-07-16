@@ -22,25 +22,26 @@ async function run() {
   const { STACK_ENV } = await ux.prompt<{
     STACK_ENV: string
   }>({
-      type: 'input',
-      name: 'STACK_ENV',
-      default: 'dev',
-      message: 'What is the name of the environment?'
-    })
+    type: 'input',
+    name: 'STACK_ENV',
+    default: 'dev',
+    message: 'What is the name of the environment?'
+  })
 
+  const doraController = 'dora-controller'
   const { OPERATION } = await ux.prompt<{
     OPERATION: string,
   }>({
-      type: 'list',
-      name: 'OPERATION',
-      default: 'service',
-      choices: ['service', 'cluster'],
-      message: 'Do you want to destroy cluster or a service?'
-    })
+    type: 'list',
+    name: 'OPERATION',
+    default: 'service',
+    choices: ['service', doraController, 'cluster'],
+    message: 'Do you want to destroy cluster or a service?'
+  })
 
   let STACK_REPO = 'cluster'
 
-  if(OPERATION === 'service') {
+  if (OPERATION === 'service') {
     ({ STACK_REPO } = await ux.prompt<{
       STACK_REPO: string
     }>({
@@ -52,7 +53,7 @@ async function run() {
   }
 
   function delay(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
   console.log('')
   await ux.spinner.start(`🗑  Collecting resources...`)
@@ -60,34 +61,38 @@ async function run() {
   await ux.spinner.stop(`🗑  Collecting resources...    ✅`)
   console.log('')
 
+  let confirmMsg = `Are you sure that you want to destroy the ${STACK_REPO} in ${STACK_ENV}?`
+  if (OPERATION === "dora-controller") {
+    confirmMsg = `Are you sure that you want to destroy the dora controller in ${STACK_ENV}?`
+  }
   const { CONFIRM } = await ux.prompt<{
     CONFIRM: boolean
   }>({
-      type: 'confirm',
-      name: 'CONFIRM',
-      default: false,
-      message: `Are you sure that you want to destroy the ${STACK_REPO} in ${STACK_ENV}?`
-    })
+    type: 'confirm',
+    name: 'CONFIRM',
+    default: false,
+    message: confirmMsg
+  })
 
-  if(!CONFIRM){
+  if (!CONFIRM) {
     await ux.print(`\n⚠️  Destroy was not confirmed. Exiting.\n`)
     process.exit(1)
   }
 
-  const STACKS:any = {
+  let STACKS: any = {
     'dev': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
     'stg': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
     'prd': [`registry-${STACK_TYPE}`, `${STACK_ENV}-${STACK_TYPE}`],
     'all': [
       `registry-${STACK_TYPE}`,
 
-      `dev-${STACK_TYPE}`, 
+      `dev-${STACK_TYPE}`,
       `stg-${STACK_TYPE}`,
       `prd-${STACK_TYPE}`,
     ]
   }
 
-  if(!STACKS[STACK_ENV].length) {
+  if (!STACKS[STACK_ENV].length) {
     return console.log('Please try again with environment set to <dev|stg|prd|all>')
   }
 
@@ -114,14 +119,16 @@ async function run() {
       .then((out) => console.log(out.stdout))
       .catch(err => console.log(err))
 
-  } catch(e) {
+  } catch (e) {
     console.log(`⚠️  Could not boostrap ${ux.colors.white(STACK_ENV)} state. Proceeding with setup...`)
   }
 
 
-  if(OPERATION === "service") {
+  if (OPERATION === "service") {
     let service = `${STACK_ENV}-${STACK_REPO}-${STACK_TYPE}`
     STACKS[STACK_ENV] = [service]
+  } else if (OPERATION === "dora-controller") {
+    STACKS[STACK_ENV] = [`${STACK_ENV}-dora-controller-${STACK_TYPE}`]
   }
 
   // destroy in reverse order
@@ -152,11 +159,16 @@ async function run() {
   })
 
   // deploy stack in synchronous series
-  exec(stacks).then(async () => {  
+  exec(stacks).then(async () => {
 
-    if(OPERATION === 'service') {
+    if (OPERATION === 'service' || OPERATION === doraController) {
+      let msg = `✅ Completed destroy of ${ux.colors.red(STACK_REPO)} in ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`
+      if (OPERATION === doraController) {
+        msg = `✅ Completed destroy of dora controller in ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`
+      }
+
       console.log('')
-      await ux.print(`✅ Completed destroy of ${ux.colors.red(STACK_REPO)} in ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
+      await ux.print(msg)
       console.log('')
       return;
     }
@@ -164,18 +176,18 @@ async function run() {
     let url = `https://app.terraform.io/app/${TFC_ORG}/workspaces/`
     console.log(`✅ View state in ${ux.colors.blue(ux.url('Terraform Cloud', url))}.`)
 
-     try {
+    try {
 
       console.log(`\n🔒 Syncing infrastructure state with ${ux.colors.white(STACK_TEAM)} team...`)
 
       // get workspace outputs
-      const outputs:any = {}
+      const outputs: any = {}
       await Promise.all(STACKS[STACK_ENV].map(async (stack) => {
         let output = await getWorkspaceOutputs(TFC_ORG, stack, process?.env?.TFC_TOKEN ?? '')
         Object.assign(outputs, output)
       }))
 
-      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g,'_')
+      const CONFIG_KEY = `${STACK_ENV}_${STACK_TYPE}_STATE`.toUpperCase().replace(/-/g, '_')
       await ux.print(`\n✅ Cleared the state in your ${ux.colors.white(STACK_TEAM)} config as ${ux.colors.white(CONFIG_KEY)}:`)
       await sdk.setConfig(CONFIG_KEY, JSON.stringify(outputs))
       await ux.print(`✅ Completed destroy of ${ux.colors.green(ux.colors.red(STACK_ENV))} cluster.`)
@@ -187,26 +199,26 @@ async function run() {
     }
 
   })
-  .catch(e => {
-    process.exit(1)
-  })
+    .catch(e => {
+      process.exit(1)
+    })
 
 }
 
 async function exec(stacks: any) {
   return new Promise((resolve, reject) => {
     spawn(stacks,
-      function(code, i, obj) {
-        if(code === 0) {
+      function (code, i, obj) {
+        if (code === 0) {
           return resolve(code)
         } else {
           return reject(code)
         }
       },
-      function(child, i, obj) {
+      function (child, i, obj) {
         console.log(ux.colors.green('Running: '), ux.colors.white(`${obj.command} ${obj.args.join(' ')}`))
         child.on('close', (code) => {
-          if(code === 0) {
+          if (code === 0) {
             console.log(ux.colors.green('Finished: '), ux.colors.white(`${obj.command} ${obj.args.join(' ')}`))
           } else {
             console.log(ux.colors.red('Failure: '), ux.colors.white(`${obj.command} ${obj.args.join(' ')}`))
