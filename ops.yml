@@ -26,7 +26,7 @@ commands:
         - DO_DEV_POSTGRES_CONFIG
         - DO_DEV_MYSQL_CONFIG
   # deploy your service and workflow to kubernetes infrastructure on digitalocean
-  - name: deploy-do-k8s-cdktf:0.1.7
+  - name: deploy-do-k8s-cdktf:0.1.8
     run: ./node_modules/.bin/ts-node /ops/src/deploy.ts
     description: "Deploy a service to Kubernetes infrastructure on DigitalOcean"
     env:
