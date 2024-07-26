@@ -35,6 +35,12 @@ RUN mv ./doctl /usr/local/bin
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
+# gh setup
+RUN GH_VERSION=$(curl -s "https://api.github.com/repos/cli/cli/releases/latest" | jq -r '.tag_name') \
+    && curl -sL "https://github.com/cli/cli/releases/download/${GH_VERSION}/gh_${GH_VERSION:1}_linux_amd64.tar.gz" > gh_linux_amd64.tar.gz \
+    && tar -xvzf gh_linux_amd64.tar.gz && chmod +x gh_${GH_VERSION:1}_linux_amd64/bin/gh && cp gh_${GH_VERSION:1}_linux_amd64/bin/gh /usr/local/bin/gh \
+    && rm -rf gh_linux_amd64.tar.gz gh_${GH_VERSION:1}_linux_amd64
+
 ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
 ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 

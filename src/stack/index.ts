@@ -2,6 +2,7 @@ import { App } from "cdktf";
 import Cluster from './cluster'
 import Service from './service'
 import Registry from './registry'
+import Dora from "./dora";
 
 interface StackProps {
   org: string
@@ -57,6 +58,12 @@ export class Stack {
       entropy: this.entropy
     })
     await cluster.initialize()
+
+    const dora = new Dora(app, `${this.env}-dora-controller-${this.key}`,{
+      org: this.org,
+      cluster: cluster
+    })
+    await dora.initialize()
 
     const service = new Service(app, `${this.env}-${this.repo}-${this.key}`, {
       org: this.org,
